@@ -2,7 +2,18 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# next-auth@5-beta.31 memakai @auth/core 0.41.2, sedangkan
+# @auth/prisma-adapter menariknya 0.41.3 → dua salinan @auth/core, dan tipe
+# Adapter dari keduanya jadi TIDAK kompatibel (createUser dll bentrok saat
+# typecheck auth.ts). Paku ke versi yang dipakai next-auth supaya adapter &
+# next-auth berbagi satu @auth/core.
+overrides:
+  "@auth/core": "0.41.2"
+
 allowBuilds:
+  '@prisma/engines': true
+  esbuild: true
+  msw: false
+  prisma: true
   sharp: true
   unrs-resolver: true
-  msw: false

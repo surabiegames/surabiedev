@@ -1,0 +1,26 @@
+{
+  "name": "@workspace/domain",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./periode": {
+      "types": "./periode.ts",
+      "default": "./periode.ts"
+    },
+    "./sla": {
+      "types": "./sla.ts",
+      "default": "./sla.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

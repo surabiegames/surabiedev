@@ -1,0 +1,48 @@
+/**
+ * api-config.ts — konfigurasi koneksi ke backend web (Next.js + Hono).
+ * Padanan `core/network/api_config.dart`.
+ *
+ * URL produksi TERTANAM di kode (`URL_PRODUKSI`) — build produksi tidak perlu
+ * flag apa pun. Untuk menunjuk backend lain (dev lokal / staging), timpa lewat
+ * env Expo saat build/start:
+ *   EXPO_PUBLIC_API_BASE_URL=http://192.168.1.10:3000 npx expo start
+ *
+ * MODE DEMO (data contoh in-memory, tanpa backend) diaktifkan EKSPLISIT:
+ *   EXPO_PUBLIC_DEMO=true npx expo start
+ * Padanan `--dart-define=DEMO=true` di Flutter. Produksi tetap jadi bawaan
+ * bila env tidak diisi.
+ *
+ * Catatan Expo: hanya variabel berawalan `EXPO_PUBLIC_` yang di-inline ke
+ * bundel klien — sama seperti `String.fromEnvironment` di Dart yang menetap
+ * saat kompilasi.
+ */
+
+/** URL produksi resmi (backend ter-deploy di Vercel). */
+const URL_PRODUKSI = 'https://perumda.vercel.app';
+
+/** Penimpa opsional saat build (dev/staging). Kosong = pakai produksi. */
+const OVERRIDE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+
+/** Aktif hanya bila `EXPO_PUBLIC_DEMO=true`. */
+const DEMO = process.env.EXPO_PUBLIC_DEMO === 'true';
+
+export const ApiConfig = {
+  /** Base URL efektif: penimpa bila diberikan, selain itu produksi. */
+  get baseUrl(): string {
+    return OVERRIDE.length > 0 ? OVERRIDE : URL_PRODUKSI;
+  },
+
+  /** true = repository memakai data demo in-memory (bukan menembak backend). */
+  get isDemo(): boolean {
+    return DEMO;
+  },
+
+  /** Endpoint publik (tanpa login): cek tagihan, lapor meter, pengaduan. */
+  publicPath: '/api/public',
+
+  /** Endpoint bisnis (wajib Bearer token): modul petugas. */
+  v1Path: '/api/v1',
+
+  /** Pintu masuk mobile (tanpa token): tukar kredensial → Bearer token. */
+  mobileAuthPath: '/api/mobile/auth',
+} as const;

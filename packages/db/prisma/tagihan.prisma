@@ -1,0 +1,255 @@
+/// 681 nomorMeter duplikat di data historis ProgresCater — penyebab: meter
+/// fisik diganti tapi nomor lama dipakai ulang, atau typo data entry.
+/// Solusi: isAktif flag. Hanya SATU meter aktif per pelanggan pada satu
+/// waktu, meter lama tetap ada sebagai baris histori (isAktif = false) —
+/// JANGAN update/timpa baris lama, JANGAN dihapus.
+///
+/// `pelangganId` SENGAJA BUKAN @unique (relasi 1:banyak) — versi awal
+/// skema ini memberi @unique di situ, yang justru BERTENTANGAN dengan
+/// niat histori di atas (cuma bisa nyimpan SATU baris Meter per pelanggan
+/// selamanya, jadi ganti meter = baris lama ketiban/hilang). Diperbaiki
+/// supaya penggantian meter benar-benar menghasilkan baris baru, bukan
+/// menimpa. "satu meter aktif per pelanggan" ditegakkan di APLIKASI
+/// (seed script & business logic), BUKAN constraint database — Prisma
+/// schema tidak punya sintaks untuk partial unique index
+/// (`WHERE isAktif = true`); kalau butuh ditegakkan di level DB juga,
+/// tambahkan index itu manual lewat raw SQL di file migrasi.
+model Meter {
+  id            String                 @id @default(cuid())
+  /// nometer (ProgresCater) = kd_wm (lapdatameter) — field yang sama.
+  /// Tidak @unique karena ada 681 duplikat di data lapangan.
+  nomorMeter    String
+  nomorSegel    String?
+  /// 60+ nilai merk dengan inkonsistensi case ("ITR","lin","AQ ","aq ").
+  /// Disimpan String, dinormalisasi UPPER+TRIM di seed script.
+  merkKode      String?
+  ukuran        UkuranMeter            @default(INCH_HALF)
+  tanggalPasang DateTime?
+  umurTahun     Int?
+  umurBulan     Int?
+  /// Sisa hari dari sisa-bagi umur meter (umurmeterhari di ProgresCater,
+  /// terisi 100% baris) — pelengkap umurTahun/umurBulan, bukan pengganti.
+  umurHari      Int?
+  /// true = meter aktif saat ini. false = sudah diganti, disimpan sebagai
+  /// histori.
+  isAktif       Boolean                @default(true)
+  catatan       String?
+  pelangganId   String
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  laporanVerif  LaporanHarianPetugas[] @relation("LaporanMeterVerif")
+  pelanggan     Pelanggan              @relation(fields: [pelangganId], references: [id], onDelete: Cascade)
+  pembacaan     PembacaanMeter[]
+
+  @@index([nomorMeter])
+  @@index([pelangganId, isAktif])
+  @@index([merkKode])
+  @@map("meter")
+}
+
+model PembacaanMeter {
+  id             String                @id @default(cuid())
+  meterId        String
+  /// Tanggal 1 bulan periode. thbl 202605 -> 2026-05-01.
+  periode        DateTime
+  standLalu      Int
+  standAkhir     Int
+  pemakaianM3    Int
+  blokTarif      Int
+  pemakaianLalu  Int?
+  blokTarifLalu  Int?
+  kondisi        KondisiCatat          @default(NORMAL)
+  kategori       KategoriPembacaan     @default(ONSITE)
+  /// FK ke Pencatat (bukan User langsung) — lihat organisasi.prisma.
+  pencatatId     String?
+  tanggalCatat   DateTime?
+  fotoBukti      String?
+  createdAt      DateTime              @default(now())
+  laporanHarian  LaporanHarianPetugas?
+  laporanMandiri LaporanMandiri?
+  meter          Meter                 @relation(fields: [meterId], references: [id], onDelete: Cascade)
+  pencatat       Pencatat?             @relation(fields: [pencatatId], references: [id])
+  tagihan        Tagihan?
+
+  @@unique([meterId, periode])
+  @@index([meterId])
+  @@index([periode])
+  @@index([kondisi])
+  @@map("pembacaan_meter")
+}
+
+/// Tagihan air periodik (1 baris per periode tagih, terikat ke satu
+/// PembacaanMeter resmi). Komponen "non-air" recurring (beaAdmin,
+/// airKotor/limbah, lainLain) tetap digabung dalam satu invoice bulanan —
+/// sesuai praktik lapangan PDAM. Untuk pungutan non-air yang SIFATNYA
+/// insidental (bukan bulanan), lihat model TagihanLain di bawah.
+model Tagihan {
+  id                String              @id @default(cuid())
+  nomorTagihan      String              @unique @default(cuid())
+  pelangganId       String
+  pembacaanId       String?             @unique
+  periode           DateTime
+  pemakaianM3       Int
+  jmlHargaAir       Int
+  beaBeban          Int                 @default(7000)
+  beaAdmin          Int                 @default(10000)
+  /// Retribusi air limbah/kotor.
+  airKotor          Int                 @default(11100)
+  lainLain          Int                 @default(0)
+  denda             Int                 @default(0)
+  totalTagihan      Int
+  jumlahRekTunggak  Int?
+  /// BigInt — tunggakan bisa mencapai puluhan-ratusan juta rupiah di data
+  /// lapangan (maks. terobservasi ~Rp 132 juta).
+  nominalTunggak    BigInt?
+  status            StatusTagihan       @default(BELUM_BAYAR)
+  tanggalJatuhTempo DateTime
+  /// Cache tanggal bayar dari RiwayatPembayaran berstatus BERHASIL
+  /// terakhir — untuk query dashboard cepat tanpa join. Sumber kebenaran
+  /// tetap RiwayatPembayaran.
+  tanggalBayar      DateTime?
+  validatorId       String?
+  validasiAt        DateTime?
+  catatanValidasi   String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  riwayatPembayaran RiwayatPembayaran[]
+  pelanggan         Pelanggan           @relation(fields: [pelangganId], references: [id])
+  pembacaan         PembacaanMeter?     @relation(fields: [pembacaanId], references: [id])
+  validator         User?               @relation("TagihanValidator", fields: [validatorId], references: [id])
+
+  @@index([pelangganId, periode])
+  @@index([status, tanggalJatuhTempo])
+  @@index([periode])
+  @@index([nominalTunggak])
+  @@map("tagihan")
+}
+
+/// Pungutan non-air yang tidak terikat siklus catat-meter bulanan: biaya
+/// pasang baru, balik nama, ganti meter rusak akibat kelalaian pelanggan,
+/// denda pelanggaran, buka segel, dll.
+model TagihanLain {
+  id                String              @id @default(cuid())
+  nomorTagihan      String              @unique @default(cuid())
+  pelangganId       String
+  jenis             JenisTagihanLain
+  deskripsi         String
+  jumlah            Int
+  status            StatusTagihan       @default(BELUM_BAYAR)
+  tanggalJatuhTempo DateTime
+  tanggalBayar      DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  riwayatPembayaran RiwayatPembayaran[]
+  pelanggan         Pelanggan           @relation(fields: [pelangganId], references: [id])
+
+  @@index([pelangganId, status])
+  @@index([jenis])
+  @@map("tagihan_lain")
+}
+
+/// Satu baris per PERCOBAAN pembayaran (bukan hanya yang berhasil) —
+/// termasuk transaksi PPOB yang pending/expired. Tepat satu dari
+/// tagihanId/tagihanLainId wajib diisi (ditegakkan di application layer,
+/// Prisma tidak punya polymorphic relation native).
+model RiwayatPembayaran {
+  id              String           @id @default(cuid())
+  tagihanId       String?
+  tagihanLainId   String?
+  jumlahBayar     Int
+  kanal           KanalPembayaran
+  /// Nama mitra/channel PPOB: "Indomaret", "Alfamart", "BRIVA", "QRIS", dst.
+  penyelenggara   String?
+  /// Kode referensi dari payment gateway/PPOB — kunci idempoten untuk
+  /// callback webhook.
+  kodeReferensi   String           @unique
+  status          StatusPembayaran @default(PENDING)
+  waktuBayar      DateTime?
+  waktuKonfirmasi DateTime?
+  /// Payload mentah callback gateway, disimpan untuk audit/rekonsiliasi.
+  payloadCallback Json?
+  createdAt       DateTime         @default(now())
+  tagihan         Tagihan?         @relation(fields: [tagihanId], references: [id], onDelete: Cascade)
+  tagihanLain     TagihanLain?     @relation(fields: [tagihanLainId], references: [id], onDelete: Cascade)
+
+  @@index([tagihanId])
+  @@index([tagihanLainId])
+  @@index([status])
+  @@index([kanal])
+  @@map("riwayat_pembayaran")
+}
+
+/// Dipetakan dari ukmeter (ProgresCater) dan kd_ukmeter (PBPK).
+/// PBPK memakai kode "A" untuk 1/2 inci -> dimap ke INCH_HALF saat seed.
+enum UkuranMeter {
+  INCH_HALF
+  INCH_1
+  INCH_1_HALF
+  INCH_2
+  INCH_3
+  INCH_4
+}
+
+/// Dipetakan dari Nm_Kel (lapdatameter) + ketcatat (ProgresCater).
+/// METER_TERBALIK dan METER_DALAM_AIR ditemukan eksklusif di lapdatameter.
+enum KondisiCatat {
+  NORMAL
+  TIDAK_DIPAKAI
+  RUMAH_KOSONG
+  STAND_TEMPEL
+  STAND_KONSUMEN
+  METER_RUSAK
+  METER_MATI_ADA_AIR
+  METER_MUNDUR
+  METER_TERBALIK
+  METER_DALAM_AIR
+  LOS_METER
+  BMK_BMB
+  TTB
+  MTA
+  TERHALANG
+  TIDAK_ADA_AIR
+  ADA_ANJING
+  DK
+  MB
+  MUDA_KEMBALI
+  REV_PENCATAT
+  DICABUT
+}
+
+enum KategoriPembacaan {
+  ONSITE
+  OFFSITE
+}
+
+enum StatusTagihan {
+  BELUM_BAYAR
+  SUDAH_BAYAR
+  JATUH_TEMPO
+  DIHAPUSKAN
+}
+
+enum JenisTagihanLain {
+  PASANG_BARU
+  BALIK_NAMA
+  GANTI_METER
+  BUKA_SEGEL
+  DENDA_PELANGGARAN
+  LAINNYA
+}
+
+enum KanalPembayaran {
+  TELLER_KANTOR
+  PPOB_BANK
+  PPOB_MINIMARKET
+  VIRTUAL_ACCOUNT
+  QRIS
+  AUTODEBET
+}
+
+enum StatusPembayaran {
+  PENDING
+  BERHASIL
+  GAGAL
+  EXPIRED
+}

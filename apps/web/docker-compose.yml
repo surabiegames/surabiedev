@@ -1,0 +1,60 @@
+name: tirtawening-dev
+
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    container_name: pg-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: tirtawening
+      # Locale konsisten lintas mesin — hindari masalah sorting/collation
+      # berbeda kalau tim pakai OS berbeda-beda.
+      POSTGRES_INITDB_ARGS: "--locale=C.UTF-8"
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pg-dev-data:/var/lib/postgresql/data
+      # Skrip di sini otomatis dijalankan SEKALI saat volume masih kosong
+      # (first init) — enable extension tambahan kalau perlu di masa depan.
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d tirtawening"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    shm_size: "256mb"
+
+  # Redis opsional — aktifkan kalau project butuh cache/session/queue.
+  # Hapus service ini kalau belum dipakai.
+  redis:
+    image: redis:7-alpine
+    container_name: redis-dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-dev-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Adminer — GUI ringan untuk lihat isi database lewat browser tanpa
+  # install DBeaver/pgAdmin terpisah. Buka http://localhost:8080
+  adminer:
+    image: adminer:latest
+    container_name: adminer-dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pg-dev-data:
+  redis-dev-data:
