@@ -13,7 +13,7 @@
  */
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../theme/theme-context';
@@ -40,8 +40,24 @@ export function BottomDock({ items, currentIndex, onTap }: BottomDockProps) {
     <BlurView
       intensity={48}
       tint={isDark ? 'dark' : 'light'}
+      experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
       style={[styles.bar, { borderTopColor: colors.iosSeparator }]}
     >
+      {/*
+        Layer warna branded DI DALAM BlurView — bukan mengganti blur, tapi
+        memastikan nuansa dock tetap ikut palet iosSecondaryBackground/
+        iosTertiaryBackground kalian, bukan cuma material blur bawaan sistem
+        (yang tidak tahu-menahu soal tema Emerald/Sky/Slate). Ini juga jadi
+        fallback kalau blur native tidak render (Android tanpa dukungan,
+        atau web saat backdrop-filter gagal) — dock tetap konsisten,
+        bukan transparan menampilkan warna latar di baliknya.
+      */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: isDark ? colors.iosTertiaryBackground + 'CC' : colors.iosSecondaryBackground + 'CC' },
+        ]}
+      />
       <View style={[styles.row, { paddingBottom: insets.bottom }]}>
         {items.map((item, i) => {
           const active = i === currentIndex;

@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as Location from 'expo-location';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Alert, AppScaffold, Button, Dialog, PhotoBox, TextField, useTheme } from '@workspace/mobile-ui';
 import { ApiException, labelPeriode, SesiWarga } from '@workspace/mobile-core';
 
@@ -35,6 +37,8 @@ export function LaporMeterScreen() {
   const [galat, setGalat] = useState<string | null>(null);
   const [dialogFoto, setDialogFoto] = useState(false);
   const [konfirmasi, setKonfirmasi] = useState(false);
+  const [koordinat, setKoordinat] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mengambilLokasi, setMengambilLokasi] = useState(false);
   const [sukses, setSukses] = useState<{ periode: number; standDilaporkan: number; pesan: string } | null>(null);
 
   const validasi = (): boolean => {
@@ -57,11 +61,30 @@ export function LaporMeterScreen() {
     setGalat(null);
     try {
       const uri = await ambilFoto(sumber, { lebarTarget: 600 });
-      if (uri) setFotoUri(uri);
+      if (uri) {
+        setFotoUri(uri);
+        // Ambil lokasi di latar belakang begitu foto berhasil diambil, supaya
+        // saat konfirmasi dikirim koordinat sudah siap tanpa jeda tambahan.
+        ambilLokasi();
+      }
     } catch (e) {
       setGalat(e instanceof MediaError ? e.message : 'Gagal mengambil foto. Coba pilih dari Galeri.');
     } finally {
       setMemprosesFoto(false);
+    }
+  };
+
+  const ambilLokasi = async () => {
+    setMengambilLokasi(true);
+    try {
+      const izin = await Location.requestForegroundPermissionsAsync();
+      if (izin.status !== 'granted') return; // Diam-diam dilewati — lokasi bersifat opsional, bukan syarat wajib.
+      const posisi = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setKoordinat({ latitude: posisi.coords.latitude, longitude: posisi.coords.longitude });
+    } catch {
+      // Gagal ambil lokasi tidak menghalangi pengiriman laporan.
+    } finally {
+      setMengambilLokasi(false);
     }
   };
 
@@ -86,9 +109,12 @@ export function LaporMeterScreen() {
         namaPelapor: namaPelapor.trim(),
         nomorPelapor: nomorPelapor.trim(),
         fotoUri,
+        latitude: koordinat?.latitude ?? null,
+        longitude: koordinat?.longitude ?? null,
       });
       setStand('');
       setFotoUri(null);
+      setKoordinat(null);
       setErrors({});
       setSukses({ periode: tanda.periode, standDilaporkan: tanda.standDilaporkan, pesan: tanda.pesan });
     } catch (e) {
@@ -129,7 +155,18 @@ export function LaporMeterScreen() {
                 <Text style={{ color: colors.foreground }}>Foto Meter</Text>
                 <Text style={{ color: colors.destructive }}> *wajib</Text>
               </Text>
-              <PhotoBox uri={fotoUri} memproses={memprosesFoto} onPress={memprosesFoto ? undefined : () => setDialogFoto(true)} />
+              <Animated.View key={fotoUri ?? 'kosong'} entering={FadeIn.duration(250)}>
+                <PhotoBox uri={fotoUri} memproses={memprosesFoto} onPress={memprosesFoto ? undefined : () => setDialogFoto(true)} />
+              </Animated.View>
+              {fotoUri != null ? (
+                <Text style={[styles.lokasiInfo, { color: colors.mutedForeground }]}>
+                  {mengambilLokasi
+                    ? 'Mengambil lokasi…'
+                    : koordinat != null
+                      ? 'Lokasi terlampir sebagai bukti tambahan.'
+                      : 'Lokasi tidak tersedia (izin ditolak atau GPS mati) — laporan tetap bisa dikirim.'}
+                </Text>
+              ) : null}
             </View>
 
             <TextField label="Nama Pelapor" placeholder="Nama lengkap Anda" value={namaPelapor} onChangeText={setNamaPelapor} error={errors.namaPelapor} />
@@ -172,12 +209,13 @@ export function LaporMeterScreen() {
           </>
         }
       >
-        <View style={styles.konfirmasi}>
+        <Animated.View entering={FadeInDown.duration(200)} style={styles.konfirmasi}>
           <BarisKonfirmasi label="No. Langganan" nilai={nomorLangganan} />
           <BarisKonfirmasi label="Angka Meter" nilai={`${stand} m³`} />
           <BarisKonfirmasi label="Pelapor" nilai={namaPelapor} />
           <BarisKonfirmasi label="Kontak" nilai={nomorPelapor} />
-        </View>
+          <BarisKonfirmasi label="Lokasi" nilai={koordinat != null ? 'Terlampir' : 'Tidak tersedia'} />
+        </Animated.View>
       </Dialog>
 
       <Dialog
@@ -210,6 +248,7 @@ const styles = StyleSheet.create({
   form: { gap: 16 },
   fotoGroup: { gap: 8 },
   fotoLabel: { fontSize: 14, fontWeight: '600' },
+  lokasiInfo: { fontSize: 12, marginTop: 4 },
   konfirmasi: { paddingVertical: 8, gap: 4 },
   barisKonf: { flexDirection: 'row', paddingVertical: 3 },
   barisKonfLabel: { width: 110, fontSize: 13 },

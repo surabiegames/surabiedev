@@ -1,12 +1,11 @@
 /**
  * kartu-langganan.tsx — "kartu pelanggan" satu nomor langganan (padanan
- * widgets/kartu_langganan.dart): gradien navy sekeluarga dengan hero,
- * disusun seperti kartu resmi (kop berlogo, nomor sebagai tokoh utama,
- * identitas & status di kaki).
+ * widgets/kartu_langganan.dart): gradien Slate → Sky → Emerald (3 warna
+ * paten kalian), disusun seperti kartu resmi (kop berlogo, nomor sebagai
+ * tokoh utama, identitas & status di kaki).
  *
- * Watermark logo besar & sapuan cahaya di versi Flutter disederhanakan —
- * gradien + hairline sudah membawa identitas visual yang sama tanpa aset
- * tambahan.
+ * Lingkaran aksen memakai Slate — bukan warna gradien itu sendiri — supaya
+ * ada kedalaman tanpa menambah hue baru di luar 3 warna yang dipakai.
  */
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -16,8 +15,8 @@ import { formatRupiah, labelStatusPelanggan } from '@workspace/mobile-core';
 
 import type { LanggananWargaModel } from './repository';
 
-// Gradien hero (pdam_palette.dart heroGradient 1/2/4).
-const HERO = [P.slate900, '#12324E', P.sky800] as const;
+// Gradien hero — 3 warna paten persis: Emerald 500 (kiri-atas) → Sky 400 → Slate 400 (kanan-bawah).
+const HERO = [P.emerald, P.sky, P.slate] as const;
 
 function nomorTerformat(nomor: string): string {
   if (nomor.length !== 11) return nomor;
@@ -30,6 +29,9 @@ export function KartuLangganan({ langganan: l, onPress }: { langganan: Langganan
   return (
     <Pressable onPress={onPress}>
       <LinearGradient colors={HERO} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.kartu}>
+        {/* Aksen lingkaran — Slate, kanan-atas. */}
+        <View style={styles.aksen} />
+
         {/* Kop: brand + Utama */}
         <View style={styles.kop}>
           <View style={styles.brandBadge}>
@@ -82,6 +84,7 @@ export function KartuLangganan({ langganan: l, onPress }: { langganan: Langganan
 
 const styles = StyleSheet.create({
   kartu: { borderRadius: 28, padding: 18, overflow: 'hidden' },
+  aksen: { position: 'absolute', top: -60, right: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: `${P.slate}66` },
   kop: { flexDirection: 'row', alignItems: 'center' },
   brandBadge: { width: 30, height: 30, borderRadius: 9, backgroundColor: '#FFFFFF1F', alignItems: 'center', justifyContent: 'center' },
   kopTeks: { flex: 1, marginLeft: 10 },

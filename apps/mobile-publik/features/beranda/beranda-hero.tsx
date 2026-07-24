@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MasterPalette as P } from '@workspace/mobile-ui';
 
-const HERO = [P.slate900, '#12324E', P.sky900, P.sky800] as const;
+const HERO = [P.emerald, P.sky, P.slate] as const;
 
 export function BerandaHero({
   sapaan,
@@ -30,7 +30,7 @@ export function BerandaHero({
 }) {
   const insets = useSafeAreaInsets();
   return (
-    <LinearGradient colors={HERO} locations={[0, 0.45, 0.7, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+    <LinearGradient colors={HERO} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
       {/* Cahaya orb tipis kanan-atas. */}
       <View style={styles.orb} />
       <View style={[styles.konten, { paddingTop: insets.top + 8, paddingBottom: content == null ? 22 : 32 }]}>
@@ -63,7 +63,7 @@ export function BerandaHero({
 
 const styles = StyleSheet.create({
   hero: { borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden' },
-  orb: { position: 'absolute', top: -60, right: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: '#38BDF826' },
+  orb: { position: 'absolute', top: -60, right: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: `${P.slate}66` },
   konten: { paddingHorizontal: 24 },
   baris: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { flexDirection: 'row', alignItems: 'center', flex: 1 },

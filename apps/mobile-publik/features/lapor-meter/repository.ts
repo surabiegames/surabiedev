@@ -7,6 +7,7 @@
  * digagalkan lebih awal di sini dengan pesan sama supaya pengguna tak menunggu
  * upload yang pasti ditolak. Foto dikirim sebagai berkas multipart (uri).
  */
+import { Platform } from 'react-native';
 import { ApiClient, ApiConfig, ApiException, LaporMeterReceipt, thblDariDate } from '@workspace/mobile-core';
 
 export interface KirimLaporMeterInput {
@@ -16,6 +17,9 @@ export interface KirimLaporMeterInput {
   nomorPelapor: string;
   /** URI foto meter yang sudah dikompres. Wajib. */
   fotoUri: string | null;
+  /** Koordinat GPS saat laporan dibuat, untuk deteksi anomali lokasi oleh petugas. Opsional — dikirim jika izin lokasi diberikan. */
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface LaporMeterRepository {
@@ -23,7 +27,7 @@ export interface LaporMeterRepository {
 }
 
 class ApiLaporMeterRepository implements LaporMeterRepository {
-  kirim(input: KirimLaporMeterInput): Promise<LaporMeterReceipt> {
+  async kirim(input: KirimLaporMeterInput): Promise<LaporMeterReceipt> {
     if (input.fotoUri == null) {
       throw new ApiException(400, 'BAD_REQUEST', 'Foto meter wajib dilampirkan sebagai bukti.');
     }
@@ -32,7 +36,11 @@ class ApiLaporMeterRepository implements LaporMeterRepository {
     form.append('standDilaporkan', String(input.standDilaporkan));
     form.append('namaPelapor', input.namaPelapor);
     form.append('nomorPelapor', input.nomorPelapor);
-    form.append('foto', { uri: input.fotoUri, name: 'meter.jpg', type: 'image/jpeg' } as unknown as Blob);
+    if (input.latitude != null && input.longitude != null) {
+      form.append('latitude', String(input.latitude));
+      form.append('longitude', String(input.longitude));
+    }
+    form.append('foto', await lampiranFoto(input.fotoUri));
 
     return ApiClient.postMultipart(`${ApiConfig.publicPath}/lapor-meter`, {
       form,
@@ -41,8 +49,28 @@ class ApiLaporMeterRepository implements LaporMeterRepository {
   }
 }
 
+/**
+ * Bentuk lampiran `foto` berbeda antara web dan native:
+ * - Native (iOS/Android): FormData RN menerima objek `{ uri, name, type }`
+ *   dan menanganinya sendiri sebagai file upload.
+ * - Web (Expo web): FormData adalah implementasi browser standar — objek
+ *   `{ uri, name, type }` TIDAK dikenali sebagai file, cuma di-`toString()`
+ *   jadi "[object Object]", sehingga server selalu melihat field `foto`
+ *   kosong dan menolak 400 walau pengguna sudah memilih foto. Di web, `uri`
+ *   perlu di-fetch dulu jadi Blob asli sebelum di-append.
+ */
+async function lampiranFoto(uri: string): Promise<Blob> {
+  if (Platform.OS === 'web') {
+    const res = await fetch(uri);
+    return res.blob();
+  }
+  return { uri, name: 'meter.jpg', type: 'image/jpeg' } as unknown as Blob;
+}
+
 class DemoLaporMeterRepository implements LaporMeterRepository {
   async kirim(input: KirimLaporMeterInput): Promise<LaporMeterReceipt> {
+    // input.latitude / input.longitude diabaikan di mode demo, tapi tetap
+    // divalidasi lewat type checking agar tidak drift dari ApiLaporMeterRepository.
     await new Promise((r) => setTimeout(r, 700));
     const now = new Date();
     return new LaporMeterReceipt(
