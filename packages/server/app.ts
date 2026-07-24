@@ -68,21 +68,29 @@ app.use("*", secureHeaders())
 // Origin diatur lewat env CORS_ORIGINS (dipisah koma), TANPA wildcard:
 // credentials: true + origin "*" ditolak browser, dan membuka semua origin
 // untuk API ber-cookie bukan hal yang benar.
-const corsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:46139")
+const corsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:8081")
   .split(",")
   .map((s) => s.trim())
-  .filter(Boolean)
+  .filter(Boolean);
+
 app.use(
   "/api/*",
   cors({
-    origin: corsOrigins,
+    // Menggunakan callback function agar Hono mengembalikan origin yang sesuai request
+    origin: (origin) => {
+      if (!origin || corsOrigins.includes(origin)) {
+        return origin || "*";
+      }
+      return null;
+    },
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
   })
-)
-app.use("*", initAuthConfig(() => fullAuthConfig))
-app.use("/api/auth/*", authHandler())
+);
+
+app.use("*", initAuthConfig(() => fullAuthConfig));
+app.use("/api/auth/*", authHandler());
 
 // ============================================================
 // /api/public/* — TANPA LOGIN, terbuka untuk siapa saja di internet.
