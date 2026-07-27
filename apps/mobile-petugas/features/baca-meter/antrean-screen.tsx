@@ -12,11 +12,14 @@
  * dan tidak pernah terjadi sebagai efek samping tindakan lain.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CheckCircle2,
+  ChevronLeft,
   CloudUpload,
   Inbox,
+  RotateCw,
   Trash2,
   TriangleAlert,
   WifiOff,
@@ -32,13 +35,23 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Text as UIText } from '@/components/ui/text';
-import { GlassPanel, useTheme } from '@/components';
+import {
+  Berat,
+  GlassPanel,
+  Kelas,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
 import { DialogKonfirmasi } from '@/features/petugas/dialog-konfirmasi';
-import { WorkspaceScaffold } from '@/features/petugas/workspace';
+import { IsiStrip, LayarGradasi, PADDING_ISI } from '@/features/petugas/layar-gradasi';
 import { daftarTertunda, hapusTertunda, kirimTertunda } from './repository';
 
-export function AntreanUploadScreen({ onBack }: { onBack: () => void }) {
+export function AntreanUploadScreen({ onBack }: { onBack?: () => void }) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [antrean, setAntrean] = useState<CatatTertunda[]>([]);
   const [memuat, setMemuat] = useState(true);
   const [mengirim, setMengirim] = useState(false);
@@ -84,13 +97,104 @@ export function AntreanUploadScreen({ onBack }: { onBack: () => void }) {
 
   const adaGagal = antrean.some((e) => e.pesanGagal != null);
 
+  /*
+   * Chrome layar (ringkasan, alert, tombol kirim) jadi kepala daftar, bukan
+   * saudara sekandung di dalam ScrollView. Alasannya sama dengan
+   * pelanggan-rute-screen: antrean bisa memuat satu rute penuh yang belum
+   * terkirim — ribuan baris, masing-masing dengan tombol dan pesan gagal.
+   * Dioper sebagai ELEMEN supaya tidak dipasang ulang tiap render.
+   */
+  const kepala = (
+    <View style={styles.kepala}>
+      {/*
+        Jumlah antrean sudah ada di strip header, jadi kartu ringkasan lama
+        dihapus — aturan tanpa aksi/informasi ganda. Yang tersisa hanya
+        peringatan saat ADA yang ditolak, karena itu keadaan yang menuntut
+        tindakan berbeda: baca pesannya dulu, jangan langsung kirim ulang.
+      */}
+      {adaGagal ? (
+        <GlassPanel padding={Spasi.lg}>
+          <View style={styles.ringkasBaris}>
+            <Inbox size={UkuranIkon.besar} color={colors.destructive} />
+            <Text style={[styles.ringkasIsi, { flex: 1, color: colors.mutedForeground }]}>
+              Sebagian ditolak server — baca pesannya di bawah sebelum mencoba lagi.
+            </Text>
+          </View>
+        </GlassPanel>
+      ) : null}
+
+      {hasil != null ? (
+        <View style={styles.jarak}>
+          <Alert icon={CheckCircle2}>
+            <AlertTitle>Hasil kirim</AlertTitle>
+            <AlertDescription>{hasil}</AlertDescription>
+          </Alert>
+        </View>
+      ) : null}
+
+      {galat != null ? (
+        <View style={styles.jarak}>
+          <Alert icon={TriangleAlert} variant="destructive">
+            <AlertTitle>Gagal</AlertTitle>
+            <AlertDescription>{galat}</AlertDescription>
+          </Alert>
+        </View>
+      ) : null}
+
+      <Button onPress={kirim} disabled={mengirim} className={`mt-4 ${Kelas.tombol}`}>
+        {mengirim ? (
+          <ActivityIndicator size="small" color={colors.primaryForeground} />
+        ) : (
+          <CloudUpload size={UkuranIkon.sedang} color={colors.primaryForeground} />
+        )}
+        <UIText className={Kelas.tombolTeks}>
+          {mengirim ? 'Mengirim…' : `Kirim ${antrean.length} Laporan`}
+        </UIText>
+      </Button>
+
+      <Text style={[styles.judulDaftar, { color: colors.foreground }]}>Isi antrean</Text>
+    </View>
+  );
+
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul="Upload Data"
-      subjudul={`${antrean.length} hasil catat menunggu dikirim`}
-      onBack={onBack}
+      subjudul="Hasil catat yang belum sampai server"
+      kiri={
+        onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={({ pressed }) => pressed && styles.ditekan}
+          >
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+        ) : null
+      }
+      kanan={
+        <Pressable
+          onPress={() => void muat()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Segarkan"
+          style={({ pressed }) => pressed && styles.ditekan}
+        >
+          <RotateCw size={UkuranIkon.sedang} color="#FFFFFF" />
+        </Pressable>
+      }
+      // Angka antrean naik ke strip supaya tetap terlihat saat daftar
+      // digulir — ia yang menentukan petugas perlu menekan Kirim atau tidak.
+      strip={
+        <IsiStrip
+          kiri={antrean.length === 0 ? 'Semua sudah terkirim' : `${antrean.length} laporan menunggu`}
+          kanan={adaGagal ? `${antrean.filter((e) => e.pesanGagal != null).length} ditolak` : null}
+        />
+      }
       onSegarkan={() => void muat()}
       sedangMuat={memuat}
+      gulir={antrean.length === 0}
     >
       {memuat && antrean.length === 0 ? (
         <View style={styles.tengah}>
@@ -98,66 +202,30 @@ export function AntreanUploadScreen({ onBack }: { onBack: () => void }) {
         </View>
       ) : antrean.length === 0 ? (
         <View style={styles.kosong}>
-          <CheckCircle2 size={40} color={colors.success} />
+          <CheckCircle2 size={UkuranIkon.kosong} color={colors.success} />
           <Text style={[styles.kosongJudul, { color: colors.foreground }]}>Antrean kosong</Text>
           <Text style={[styles.kosongTeks, { color: colors.mutedForeground }]}>
             Semua hasil catat sudah sampai di server. Tidak ada yang perlu dikerjakan di sini.
           </Text>
         </View>
       ) : (
-        <>
-          <GlassPanel padding={14}>
-            <View style={styles.ringkasBaris}>
-              <Inbox size={20} color={adaGagal ? colors.destructive : colors.foreground} />
-              <View style={styles.ringkasTeks}>
-                <Text style={[styles.ringkasJudul, { color: colors.foreground }]}>
-                  {antrean.length} laporan menunggu
-                </Text>
-                <Text style={[styles.ringkasIsi, { color: colors.mutedForeground }]}>
-                  {adaGagal
-                    ? 'Sebagian ditolak server — baca pesannya di bawah sebelum mencoba lagi.'
-                    : 'Kirim saat sinyal sedang bagus. Baris yang gagal tetap tersimpan.'}
-                </Text>
-              </View>
-            </View>
-          </GlassPanel>
-
-          {hasil != null ? (
-            <View style={styles.jarak}>
-              <Alert icon={CheckCircle2}>
-                <AlertTitle>Hasil kirim</AlertTitle>
-                <AlertDescription>{hasil}</AlertDescription>
-              </Alert>
-            </View>
-          ) : null}
-
-          {galat != null ? (
-            <View style={styles.jarak}>
-              <Alert icon={TriangleAlert} variant="destructive">
-                <AlertTitle>Gagal</AlertTitle>
-                <AlertDescription>{galat}</AlertDescription>
-              </Alert>
-            </View>
-          ) : null}
-
-          <Button onPress={kirim} disabled={mengirim} className="mt-4 h-12 w-full">
-            {mengirim ? (
-              <ActivityIndicator size="small" color={colors.primaryForeground} />
-            ) : (
-              <CloudUpload size={16} color={colors.primaryForeground} />
-            )}
-            <UIText>{mengirim ? 'Mengirim…' : `Kirim ${antrean.length} Laporan`}</UIText>
-          </Button>
-
-          <Text style={[styles.judulDaftar, { color: colors.foreground }]}>Isi antrean</Text>
-          {antrean.map((entri) => (
-            <BarisAntrean
-              key={entri.idAntrean ?? nomorLanggananAntrean(entri)}
-              entri={entri}
-              onHapus={() => setAkanDihapus(entri)}
-            />
-          ))}
-        </>
+        <FlatList
+          data={antrean}
+          keyExtractor={(entri) => String(entri.idAntrean ?? nomorLanggananAntrean(entri))}
+          ListHeaderComponent={kepala}
+          contentContainerStyle={{
+            paddingHorizontal: PADDING_ISI,
+            paddingBottom: insets.bottom + Spasi.xl,
+          }}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          refreshing={memuat}
+          onRefresh={() => void muat()}
+          renderItem={({ item }) => (
+            <BarisAntrean entri={item} onHapus={() => setAkanDihapus(item)} />
+          )}
+        />
       )}
 
       <DialogKonfirmasi
@@ -177,7 +245,7 @@ export function AntreanUploadScreen({ onBack }: { onBack: () => void }) {
           await muat();
         }}
       />
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
@@ -194,12 +262,12 @@ function BarisAntrean({
   const jumlahBerkas = Object.keys(entri.fotoPaths).length;
 
   return (
-    <GlassPanel padding={14} style={styles.baris}>
+    <GlassPanel padding={Spasi.lg} style={styles.baris}>
       <View style={styles.barisAtas}>
         {gagal ? (
-          <TriangleAlert size={16} color={colors.destructive} />
+          <TriangleAlert size={UkuranIkon.sedang} color={colors.destructive} />
         ) : (
-          <WifiOff size={16} color={colors.mutedForeground} />
+          <WifiOff size={UkuranIkon.sedang} color={colors.mutedForeground} />
         )}
         <Text style={[styles.barisNomor, { color: colors.foreground }]}>
           {nomorLanggananAntrean(entri)}
@@ -221,31 +289,38 @@ function BarisAntrean({
         </Text>
       ) : null}
 
-      <Button variant="outline" onPress={onHapus} className="mt-3 h-9 w-full">
-        <Trash2 size={14} color={colors.destructive} />
-        <UIText style={{ color: colors.destructive }}>Buang dari antrean</UIText>
+      <Button variant="outline" onPress={onHapus} className={`mt-3 ${Kelas.tombol}`}>
+        <Trash2 size={UkuranIkon.kecil} color={colors.destructive} />
+        <UIText className={Kelas.tombolTeks} style={{ color: colors.destructive }}>
+          Buang dari antrean
+        </UIText>
       </Button>
     </GlassPanel>
   );
 }
 
 const styles = StyleSheet.create({
-  tengah: { paddingVertical: 48, alignItems: 'center' },
-  kosong: { paddingVertical: 44, alignItems: 'center', gap: 10 },
-  kosongJudul: { fontSize: 16, fontWeight: '600' },
-  kosongTeks: { fontSize: 12.5, textAlign: 'center', lineHeight: 19 },
+  ditekan: { opacity: 0.7 },
+  tengah: { paddingVertical: Spasi.xxl + Spasi.lg, alignItems: 'center' },
+  kosong: { paddingVertical: Spasi.xxl + Spasi.md, alignItems: 'center', gap: Spasi.md },
+  kosongJudul: { fontSize: Teks.base, fontWeight: Berat.semi },
+  kosongTeks: { fontSize: Teks.sm, textAlign: 'center', lineHeight: TinggiBaris.sm },
+  kepala: { paddingBottom: Spasi.xs },
 
-  ringkasBaris: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  ringkasTeks: { flex: 1 },
-  ringkasJudul: { fontSize: 14, fontWeight: '600' },
-  ringkasIsi: { fontSize: 11.5, marginTop: 3, lineHeight: 17 },
+  ringkasBaris: { flexDirection: 'row', alignItems: 'flex-start', gap: Spasi.md },
+  ringkasIsi: { fontSize: Teks.xs, marginTop: Spasi.xs, lineHeight: TinggiBaris.xs },
 
-  jarak: { marginTop: 14 },
-  judulDaftar: { fontSize: 13, fontWeight: '700', marginTop: 20, marginBottom: 8 },
-  baris: { marginBottom: 8 },
-  barisAtas: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  barisNomor: { flex: 1, fontSize: 13, fontWeight: '600' },
-  barisPeriode: { fontSize: 11 },
-  barisRincian: { fontSize: 11.5, marginTop: 6 },
-  pesanGagal: { fontSize: 11.5, marginTop: 6, lineHeight: 17 },
+  jarak: { marginTop: Spasi.lg },
+  judulDaftar: {
+    fontSize: Teks.base,
+    fontWeight: Berat.tebal,
+    marginTop: Spasi.xl,
+    marginBottom: Spasi.md,
+  },
+  baris: { marginBottom: Spasi.md },
+  barisAtas: { flexDirection: 'row', alignItems: 'center', gap: Spasi.sm },
+  barisNomor: { flex: 1, fontSize: Teks.sm, fontWeight: Berat.semi },
+  barisPeriode: { fontSize: Teks.xs },
+  barisRincian: { fontSize: Teks.xs, marginTop: Spasi.sm, lineHeight: TinggiBaris.xs },
+  pesanGagal: { fontSize: Teks.xs, marginTop: Spasi.sm, lineHeight: TinggiBaris.xs },
 });

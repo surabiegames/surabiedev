@@ -26,7 +26,7 @@ import 'react-native-reanimated';
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: 'index',
+  initialRouteName: '(tabs)',
 };
 
 void SplashScreen.preventAutoHideAsync();

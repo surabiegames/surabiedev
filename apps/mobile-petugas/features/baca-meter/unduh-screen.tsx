@@ -10,9 +10,10 @@
  * di layar ini menyatakan itu secara eksplisit.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   CheckCircle2,
+  ChevronLeft,
   CloudDownload,
   Database,
   Map as MapIcon,
@@ -29,13 +30,23 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Text as UIText } from '@/components/ui/text';
-import { GlassPanel, useTheme } from '@/components';
+import {
+  Berat,
+  GlassPanel,
+  Kelas,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
 import { DialogKonfirmasi } from '@/features/petugas/dialog-konfirmasi';
-import { WorkspaceScaffold, type Ikon } from '@/features/petugas/workspace';
+import { IsiStrip, LayarGradasi } from '@/features/petugas/layar-gradasi';
+import { type Ikon } from '@/features/petugas/workspace';
 import { jumlahTertunda, periodeCatatSekarang, ruteSaya } from './repository';
 import { semuaTarif, unduhTarif } from './tarif';
 
-export function UnduhDataScreen({ onBack }: { onBack: () => void }) {
+export function UnduhDataScreen({ onBack }: { onBack?: () => void }) {
   const { colors } = useTheme();
   const [paket, setPaket] = useState<RuteSaya | null>(null);
   const [jumlahTarif, setJumlahTarif] = useState(0);
@@ -102,10 +113,34 @@ export function UnduhDataScreen({ onBack }: { onBack: () => void }) {
   const adaRute = paket?.ruteKode != null;
 
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul="Download Data"
-      subjudul="Unduh rute & master tarif untuk kerja offline"
-      onBack={onBack}
+      subjudul="Rute & master tarif untuk kerja offline"
+      kiri={
+        onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={({ pressed }) => pressed && styles.ditekan}
+          >
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+        ) : null
+      }
+      // Strip menjawab pertanyaan yang membawa petugas ke layar ini: data di
+      // perangkat masih segar atau sudah basi?
+      strip={
+        <IsiStrip
+          kiri={
+            paket?.diunduhPada != null
+              ? `Terunduh ${formatWaktuLokal(paket.diunduhPada)}`
+              : 'Belum pernah diunduh'
+          }
+          kanan={adaRute ? `${paket?.target ?? 0} SL` : null}
+        />
+      }
     >
       <GlassPanel padding={0} style={styles.kartu}>
         <BarisData
@@ -171,14 +206,16 @@ export function UnduhDataScreen({ onBack }: { onBack: () => void }) {
       <Button
         onPress={() => (adaRute ? setTanyaGanti(true) : void unduh())}
         disabled={mengunduh}
-        className="mt-4 h-12 w-full"
+        className={`mt-4 ${Kelas.tombol}`}
       >
         {mengunduh ? (
           <ActivityIndicator size="small" color={colors.primaryForeground} />
         ) : (
-          <CloudDownload size={16} color={colors.primaryForeground} />
+          <CloudDownload size={UkuranIkon.sedang} color={colors.primaryForeground} />
         )}
-        <UIText>{mengunduh ? 'Mengunduh…' : adaRute ? 'Unduh Ulang' : 'Unduh Data'}</UIText>
+        <UIText className={Kelas.tombolTeks}>
+          {mengunduh ? 'Mengunduh…' : adaRute ? 'Unduh Ulang' : 'Unduh Data'}
+        </UIText>
       </Button>
 
       <Text style={[styles.catatan, { color: colors.mutedForeground }]}>
@@ -198,7 +235,7 @@ export function UnduhDataScreen({ onBack }: { onBack: () => void }) {
         onTutup={() => setTanyaGanti(false)}
         onKonfirmasi={unduh}
       />
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
@@ -218,7 +255,7 @@ function BarisData({
   const { colors } = useTheme();
   return (
     <View style={styles.baris}>
-      <IkonBaris size={18} color={bahaya ? colors.destructive : colors.mutedForeground} />
+      <IkonBaris size={UkuranIkon.besar} color={bahaya ? colors.destructive : colors.mutedForeground} />
       <View style={styles.barisTeks}>
         <Text style={[styles.barisJudul, { color: colors.mutedForeground }]}>{judul}</Text>
         <Text style={[styles.barisNilai, { color: bahaya ? colors.destructive : colors.foreground }]}>
@@ -238,13 +275,33 @@ function Pemisah() {
 }
 
 const styles = StyleSheet.create({
-  kartu: { paddingVertical: 4 },
-  baris: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14 },
+  ditekan: { opacity: 0.7 },
+  kartu: { paddingVertical: Spasi.xs },
+  baris: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spasi.md,
+    padding: Spasi.lg,
+  },
   barisTeks: { flex: 1 },
-  barisJudul: { fontSize: 11, fontWeight: '600', letterSpacing: 0.4, textTransform: 'uppercase' },
-  barisNilai: { fontSize: 15, fontWeight: '600', marginTop: 3 },
-  barisKeterangan: { fontSize: 11.5, marginTop: 3, lineHeight: 17 },
-  pemisah: { height: StyleSheet.hairlineWidth, marginHorizontal: 14 },
-  jarak: { marginTop: 14 },
-  catatan: { fontSize: 11.5, textAlign: 'center', marginTop: 12, lineHeight: 17 },
+  barisJudul: {
+    fontSize: Teks.xs,
+    fontWeight: Berat.semi,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  barisNilai: { fontSize: Teks.base, fontWeight: Berat.semi, marginTop: Spasi.xs },
+  barisKeterangan: {
+    fontSize: Teks.xs,
+    marginTop: Spasi.xs,
+    lineHeight: TinggiBaris.xs,
+  },
+  pemisah: { height: StyleSheet.hairlineWidth, marginHorizontal: Spasi.lg },
+  jarak: { marginTop: Spasi.lg },
+  catatan: {
+    fontSize: Teks.xs,
+    textAlign: 'center',
+    marginTop: Spasi.md,
+    lineHeight: TinggiBaris.xs,
+  },
 });

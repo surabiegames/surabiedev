@@ -32,16 +32,21 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Camera,
+  Check,
   ChevronLeft,
-  ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Images,
   MapPin,
   MapPinOff,
+  PencilLine,
+  Receipt,
   Trash2,
   TriangleAlert,
-  User,
+  type LucideProps,
 } from 'lucide-react-native';
 import {
   ApiConfig,
@@ -51,7 +56,7 @@ import {
   labelDari,
   labelKategoriPembacaan,
   labelKondisiMeter,
-  labelPeriode,
+  labelBulanPendek,
   type JenisBerkas,
   type PelangganRute,
 } from '@workspace/mobile-core';
@@ -61,8 +66,20 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Text as UIText } from '@/components/ui/text';
 import { AppDialog } from '@/components/ui/app-dialog';
-import { GlassPanel, MasterPalette as P, useTheme } from '@/components';
-import { WorkspaceScaffold, SquircleIcon } from '@/features/petugas/workspace';
+import { SelectField } from '@/components/ui/select-field';
+import {
+  Radius,
+  Berat,
+  GlassPanel,
+  Kelas,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  TinggiKontrol,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
+import { IsiStrip, LayarGradasi } from '@/features/petugas/layar-gradasi';
 import { MediaError, ambilFoto, ambilVideo, type SumberMedia } from '@/features/shared/media';
 import { simpanSalinanFoto } from './backup';
 import { jarakMeter, layananAktif, pantauPosisi, posisiSekarang, type Posisi } from './lokasi';
@@ -124,7 +141,9 @@ export function CatatMeterScreen({
   const [slotDialog, setSlotDialog] = useState<JenisBerkas | null>(null);
   const [konfirmasi, setKonfirmasi] = useState<string | null>(null);
   const [tanyaGps, setTanyaGps] = useState(false);
-  const [tanyaLanjut, setTanyaLanjut] = useState<PelangganRute | null>(null);
+  /** Bagian jarang-pakai mulai TERTUTUP — itu inti peringkasan (varian K5). */
+  const [bukaTambahan, setBukaTambahan] = useState(false);
+  const [bukaEstimasi, setBukaEstimasi] = useState(false);
 
   const periode = periodeCatatSekarang();
   const lepasPantau = useRef<(() => void) | null>(null);
@@ -364,12 +383,13 @@ export function CatatMeterScreen({
         usulanPerubahan: usulan.trim().length > 0 ? usulan.trim() : null,
         notelpBaru: gantiNoHp ? noHp.trim() : null,
       });
-      // Alur jalan Aurora: selesai satu rumah → tawarkan rumah berikutnya yang
-      // belum dibaca, tanpa harus kembali ke daftar dulu.
+      // LANGSUNG LANJUT ke rumah berikutnya yang belum dibaca — tanpa dialog
+      // "lanjut?" di antaranya. Rute berisi 184 rumah; satu ketukan tambahan
+      // per rumah berarti 184 ketukan sehari yang jawabannya selalu "ya".
+      // Kalau rutenya habis, kembali ke daftar.
       const berikut = berikutnyaBelumDibaca();
       if (berikut != null) {
-        setTanyaLanjut(berikut);
-        setMengirim(false);
+        onPindah(berikut.nomorLangganan);
         return;
       }
       onSelesai();
@@ -387,18 +407,55 @@ export function CatatMeterScreen({
 
   // ── Tampilan ────────────────────────────────────────────────────────
 
-  return (
-    <WorkspaceScaffold
-      judul="Catat Meter"
-      subjudul={labelPeriode(periode)}
-      onBack={onBack}
-    >
-      <KartuIdentitas
-        pelanggan={pelanggan}
-        posisi={posisi}
-        jarak={jarakKePelanggan}
-      />
+  /**
+   * Kapan tombol simpan menyala. Cermin dari `periksaLaluKonfirmasi`, bukan
+   * aturan kedua — kalau keduanya berbeda, petugas akan melihat tombol hidup
+   * lalu ditolak, yang jauh lebih membingungkan daripada tombol mati.
+   *
+   * Kondisi kelainan (rumah kosong, meter rusak) TIDAK menuntut angka maupun
+   * foto, jadi tombolnya menyala lebih awal — itu memang keadaan yang sah.
+   */
+  const bolehSimpan =
+    standLalu != null &&
+    !mundurTanpaKondisiSah &&
+    (kondisi !== 'NORMAL' ||
+      (standAkhir != null && (ApiConfig.isDemo || fotoPaths.stand != null)));
 
+
+  return (
+    <LayarGradasi
+      // Nama pelanggan MENGGANTIKAN judul layar (varian I5): "Catat Meter"
+      // tidak memberi tahu apa pun yang belum jelas dari isinya, sedangkan
+      // nama + nomor mencegah kesalahan paling mahal di layar ini — mencatat
+      // rumah yang salah. Keduanya di header, jadi tidak ikut tergulir.
+      judul={pelanggan.nama}
+      subjudul={pelanggan.nomorLangganan}
+      kiri={
+        <Pressable
+          onPress={onBack}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Kembali"
+          style={({ pressed }) => pressed && styles.ditekan}
+        >
+          <ChevronLeft size={22} color="#FFFFFF" />
+        </Pressable>
+      }
+      kanan={<PenandaGps jarak={jarakKePelanggan} adaPosisi={posisi != null} />}
+      strip={
+        <IsiStrip
+          kiri={pelanggan.alamat ?? 'Alamat belum tercatat'}
+          kanan={pelanggan.urutan != null ? `#${pelanggan.urutan}` : null}
+        />
+      }
+      mengambang={
+        <TombolSimpanMengambang
+          aktif={bolehSimpan && !mengirim}
+          mengirim={mengirim}
+          onPress={periksaLaluKonfirmasi}
+        />
+      }
+    >
       <KartuStand
         standLalu={standLalu}
         memuatStand={memuatStand}
@@ -409,9 +466,8 @@ export function CatatMeterScreen({
         anomali={anomali}
         mundurTanpaKondisiSah={mundurTanpaKondisiSah}
         pemakaianLalu={pelanggan.pemakaianLalu}
+        riwayat={pelanggan.riwayat}
       />
-
-      {pelanggan.riwayat.length > 0 ? <KartuRiwayat pelanggan={pelanggan} /> : null}
 
       <KartuPilihan
         kondisi={kondisi}
@@ -426,22 +482,41 @@ export function CatatMeterScreen({
         fotoPaths={fotoPaths}
         memproses={memproses}
         onBukaSlot={setSlotDialog}
+        fotoStandWajib={kondisi === 'NORMAL'}
       />
 
-      <KartuTambahan
-        noHp={noHp}
-        onNoHp={setNoHp}
-        usulan={usulan}
-        onUsulan={setUsulan}
-      />
+      {/*
+        K5 — dua bagian yang TIDAK ada di jalur harian dilipat jadi baris
+        tipis. Nilai pentingnya tetap terbaca di kanan tanpa membukanya, jadi
+        sebagian besar hari petugas tidak perlu menyentuhnya sama sekali.
+      */}
+      <View style={styles.lipatan}>
+        <BarisLipat
+          ikon={PencilLine}
+          judul="Perbaikan data lapangan"
+          nilai={ringkasTambahan(noHp, pelanggan.notelp, usulan)}
+          terbuka={bukaTambahan}
+          onToggle={() => setBukaTambahan((b) => !b)}
+        >
+          <IsiTambahan noHp={noHp} onNoHp={setNoHp} usulan={usulan} onUsulan={setUsulan} />
+        </BarisLipat>
 
-      {estimasiAir != null ? (
-        <KartuEstimasi
-          estimasiAir={estimasiAir}
-          biayaTetap={biayaTetap}
-          estimasiTotal={estimasiTotal}
-        />
-      ) : null}
+        {estimasiAir != null ? (
+          <BarisLipat
+            ikon={Receipt}
+            judul="Estimasi tagihan"
+            nilai={formatRupiah(estimasiTotal ?? estimasiAir)}
+            terbuka={bukaEstimasi}
+            onToggle={() => setBukaEstimasi((b) => !b)}
+          >
+            <IsiEstimasi
+              estimasiAir={estimasiAir}
+              biayaTetap={biayaTetap}
+              estimasiTotal={estimasiTotal}
+            />
+          </BarisLipat>
+        ) : null}
+      </View>
 
       {galat != null ? (
         <View style={styles.jarakAtas}>
@@ -452,31 +527,8 @@ export function CatatMeterScreen({
         </View>
       ) : null}
 
-      <Button onPress={periksaLaluKonfirmasi} disabled={mengirim} className="mt-4 h-12 w-full">
-        {mengirim ? <ActivityIndicator size="small" color={colors.primaryForeground} /> : null}
-        <UIText>{mengirim ? 'Menyimpan…' : 'Simpan Hasil Baca'}</UIText>
-      </Button>
-
-      <View style={styles.navUrutan}>
-        <Button
-          variant="outline"
-          disabled={sebelumnya == null}
-          onPress={() => sebelumnya && onPindah(sebelumnya.nomorLangganan)}
-          className="flex-1"
-        >
-          <ChevronLeft size={15} color={colors.foreground} />
-          <UIText>Sebelumnya</UIText>
-        </Button>
-        <Button
-          variant="outline"
-          disabled={berikutnya == null}
-          onPress={() => berikutnya && onPindah(berikutnya.nomorLangganan)}
-          className="flex-1"
-        >
-          <UIText>Berikutnya</UIText>
-          <ChevronRight size={15} color={colors.foreground} />
-        </Button>
-      </View>
+      {/* Ruang supaya kartu terakhir tidak tertutup tombol mengambang. */}
+      <View style={styles.ruangBawah} />
 
       {/* ── Dialog ── */}
 
@@ -491,26 +543,26 @@ export function CatatMeterScreen({
         }
         actions={
           <>
-            <Button onPress={() => slotDialog && ambilBerkas(slotDialog, 'kamera')} className="w-full">
-              <Camera size={15} color={colors.primaryForeground} />
-              <UIText>Kamera</UIText>
+            <Button onPress={() => slotDialog && ambilBerkas(slotDialog, 'kamera')} className={Kelas.tombol}>
+              <Camera size={UkuranIkon.kecil} color={colors.primaryForeground} />
+              <UIText className={Kelas.tombolTeks}>Kamera</UIText>
             </Button>
             <Button
               variant="outline"
               onPress={() => slotDialog && ambilBerkas(slotDialog, 'galeri')}
-              className="w-full"
+              className={Kelas.tombol}
             >
-              <Images size={15} color={colors.foreground} />
-              <UIText>Galeri</UIText>
+              <Images size={UkuranIkon.kecil} color={colors.foreground} />
+              <UIText className={Kelas.tombolTeks}>Galeri</UIText>
             </Button>
             {slotDialog != null && fotoPaths[slotDialog] != null ? (
               <Button
                 variant="destructive"
                 onPress={() => slotDialog && hapusBerkas(slotDialog)}
-                className="w-full"
+                className={Kelas.tombol}
               >
-                <Trash2 size={15} color={colors.destructiveForeground} />
-                <UIText>Hapus</UIText>
+                <Trash2 size={UkuranIkon.kecil} color={colors.destructiveForeground} />
+                <UIText className={Kelas.tombolTeks}>Hapus</UIText>
               </Button>
             ) : null}
           </>
@@ -532,9 +584,9 @@ export function CatatMeterScreen({
                 setTanyaGps(false);
                 void mulaiGps();
               }}
-              className="w-full"
+              className={Kelas.tombol}
             >
-              <UIText>Aktifkan Dulu</UIText>
+              <UIText className={Kelas.tombolTeks}>Aktifkan Dulu</UIText>
             </Button>
             <Button
               variant="outline"
@@ -542,9 +594,9 @@ export function CatatMeterScreen({
                 setTanyaGps(false);
                 setKonfirmasi(susunRingkasan());
               }}
-              className="w-full"
+              className={Kelas.tombol}
             >
-              <UIText>Lanjut Tanpa GPS</UIText>
+              <UIText className={Kelas.tombolTeks}>Lanjut Tanpa GPS</UIText>
             </Button>
           </>
         }
@@ -557,119 +609,115 @@ export function CatatMeterScreen({
         description={konfirmasi ?? ''}
         actions={
           <>
-            <Button onPress={simpan} className="w-full">
-              <UIText>Simpan</UIText>
+            <Button onPress={simpan} className={Kelas.tombol}>
+              <UIText className={Kelas.tombolTeks}>Simpan</UIText>
             </Button>
-            <Button variant="outline" onPress={() => setKonfirmasi(null)} className="w-full">
-              <UIText>Periksa Lagi</UIText>
+            <Button variant="outline" onPress={() => setKonfirmasi(null)} className={Kelas.tombol}>
+              <UIText className={Kelas.tombolTeks}>Periksa Lagi</UIText>
             </Button>
           </>
         }
       />
 
-      <AppDialog
-        visible={tanyaLanjut != null}
-        onDismiss={() => {
-          setTanyaLanjut(null);
-          onSelesai();
-        }}
-        title="Tersimpan"
-        description={
-          tanyaLanjut == null
-            ? ''
-            : `Hasil catat masuk antrean upload. Lanjut ke pelanggan berikutnya?\n${tanyaLanjut.nama} · ${tanyaLanjut.nomorLangganan}`
-        }
-        actions={
-          <>
-            <Button
-              onPress={() => {
-                const tujuan = tanyaLanjut;
-                setTanyaLanjut(null);
-                if (tujuan) onPindah(tujuan.nomorLangganan);
-              }}
-              className="w-full"
-            >
-              <UIText>Lanjut</UIText>
-            </Button>
-            <Button
-              variant="outline"
-              onPress={() => {
-                setTanyaLanjut(null);
-                onSelesai();
-              }}
-              className="w-full"
-            >
-              <UIText>Kembali ke Daftar</UIText>
-            </Button>
-          </>
-        }
-      />
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
 // ── Bagian tampilan ───────────────────────────────────────────────────
 
-function KartuIdentitas({
-  pelanggan,
-  posisi,
-  jarak,
-}: {
-  pelanggan: PelangganRute;
-  posisi: Posisi | null;
-  jarak: number | null;
-}) {
-  const { colors } = useTheme();
-  const p = pelanggan;
-  const rincian = [
-    p.nomorLangganan,
-    p.nomorMeter != null ? `Meter ${p.nomorMeter}` : null,
-    p.golonganTarif != null ? `Tarif ${p.golonganTarif}` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
+/**
+ * Penanda GPS di sudut kanan header — varian **P2**: ikon lokasi + jarak.
+ *
+ * Angkanya punya guna nyata, bukan hiasan: kalau tertulis 150 m, petugas
+ * kemungkinan berdiri di rumah yang salah — dan itu ketahuan SEBELUM
+ * menyimpan, bukan saat verifikasi mempertanyakannya sebulan kemudian.
+ *
+ * Tiga keadaan: terkunci dengan jarak, terkunci tanpa titik pelanggan
+ * (pelanggan belum dipetakan), dan belum dapat sinyal.
+ */
+function PenandaGps({ jarak, adaPosisi }: { jarak: number | null; adaPosisi: boolean }) {
+  const teks = !adaPosisi ? '—' : jarak == null ? 'aktif' : `${jarak} m`;
   return (
-    <GlassPanel>
-      <View style={styles.identitasBaris}>
-        <SquircleIcon ikon={User} gradasi={[P.emerald, P.emerald600]} ukuran={44} />
-        <View style={styles.identitasTeks}>
-          <Text style={[styles.nama, { color: colors.foreground }]}>{p.nama}</Text>
-          <Text style={[styles.rincian, { color: colors.mutedForeground }]}>{rincian}</Text>
-          {p.alamat != null ? (
-            <Text style={[styles.alamat, { color: colors.mutedForeground }]}>{p.alamat}</Text>
-          ) : null}
-          {p.notelp != null && p.notelp.length > 0 ? (
-            <Text style={[styles.telp, { color: colors.mutedForeground }]}>Telp: {p.notelp}</Text>
-          ) : null}
-        </View>
-        {p.urutan != null ? (
-          <View style={[styles.pilUrutan, { borderColor: colors.border }]}>
-            <Text style={[styles.pilUrutanTeks, { color: colors.mutedForeground }]}>
-              #{p.urutan}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.gpsBaris}>
-        {posisi == null ? (
-          <MapPinOff size={13} color={colors.destructive} />
-        ) : (
-          <MapPin size={13} color={P.emerald600} />
-        )}
-        <Text style={[styles.gpsTeks, { color: colors.mutedForeground }]}>
-          {posisi == null
-            ? 'Menunggu sinyal GPS…'
-            : jarak == null
-              ? 'Posisi terbaca — titik pelanggan belum dipetakan'
-              : `±${jarak} m dari titik pelanggan`}
-        </Text>
-      </View>
-    </GlassPanel>
+    <View style={styles.gps}>
+      {adaPosisi ? (
+        <MapPin size={UkuranIkon.sedang} color="#FFFFFF" />
+      ) : (
+        <MapPinOff size={UkuranIkon.sedang} color="rgba(255,255,255,0.55)" />
+      )}
+      <Text style={[styles.gpsTeks, !adaPosisi && styles.gpsRedup]}>{teks}</Text>
+    </View>
   );
 }
 
+/**
+ * Tombol simpan MENGAMBANG (varian F2): lingkaran 56, hanya ikon ceklis.
+ *
+ * Mengambang, bukan menempel di bar bawah, supaya tidak memakan tinggi tetap
+ * di layar yang justru ingin diringkas. Mati sampai isian sah — aturannya
+ * `bolehSimpan` di komponen induk, yang mencerminkan guard penyimpanan
+ * sesungguhnya. Tombol yang menyala lalu ditolak lebih membingungkan daripada
+ * tombol yang jelas belum bisa ditekan.
+ *
+ * Menekannya TIDAK langsung mengirim: dialog ringkasan tetap muncul. Itu
+ * guard yang lahir dari kenyataan bahwa satu baris tersimpan langsung menjadi
+ * hasil kerja yang diverifikasi kantor.
+ */
+function TombolSimpanMengambang({
+  aktif,
+  mengirim,
+  onPress,
+}: {
+  aktif: boolean;
+  mengirim: boolean;
+  onPress: () => void;
+}) {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.dudukanFab, { bottom: insets.bottom + Spasi.xl }]} pointerEvents="box-none">
+      <Pressable
+        onPress={onPress}
+        disabled={!aktif}
+        accessibilityRole="button"
+        accessibilityLabel="Simpan hasil baca"
+        accessibilityState={{ disabled: !aktif }}
+        style={({ pressed }) => [
+          styles.fab,
+          {
+            backgroundColor: aktif ? colors.primary : colors.muted,
+            borderColor: colors.background,
+          },
+          aktif && styles.fabAktif,
+          pressed && aktif && styles.ditekan,
+        ]}
+      >
+        {mengirim ? (
+          <ActivityIndicator size="small" color={colors.primaryForeground} />
+        ) : (
+          <Check
+            size={26}
+            strokeWidth={2.6}
+            color={aktif ? colors.primaryForeground : colors.mutedForeground}
+          />
+        )}
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * Kartu Angka Stand — varian **S4**: kotak isian besar di atas, lalu tiga chip
+ * berukuran sama.
+ *
+ * URUTAN CHIP DISENGAJA: Stand lalu → Bulan lalu → Pemakaian. Dua yang kiri
+ * adalah bahan, yang kanan hasilnya — dibaca seperti kalimat, dan hasilnya
+ * diberi nada hijau supaya mata berhenti di situ.
+ *
+ * Riwayat tiga periode ikut di sini sebagai SATU BARIS (varian K5), bukan
+ * kartu tersendiri. Tempatnya memang di sini: ia dibaca sebagai pembanding
+ * angka yang baru diketik, bukan sebagai bagian terpisah.
+ */
 function KartuStand({
   standLalu,
   memuatStand,
@@ -680,6 +728,7 @@ function KartuStand({
   anomali,
   mundurTanpaKondisiSah,
   pemakaianLalu,
+  riwayat,
 }: {
   standLalu: number | null;
   memuatStand: boolean;
@@ -690,48 +739,43 @@ function KartuStand({
   anomali: boolean;
   mundurTanpaKondisiSah: boolean;
   pemakaianLalu: number | null;
+  riwayat: PelangganRute['riwayat'];
 }) {
   const { colors } = useTheme();
-  const warnaDeviasi = anomali ? colors.destructive : colors.mutedForeground;
 
   return (
-    <GlassPanel style={styles.kartu}>
-      <Text style={[styles.judulKartu, { color: colors.foreground }]}>Angka Stand</Text>
+    <GlassPanel padding={Spasi.lg}>
+      <Text style={[styles.labelKecil, { color: colors.mutedForeground }]}>Stand akhir</Text>
+      <Input
+        value={teksStand}
+        onChangeText={(v) => onUbahStand(v.replace(/[^0-9]/g, ''))}
+        placeholder="0"
+        keyboardType="number-pad"
+        className="h-14 text-[28px] font-bold"
+      />
 
-      <View style={styles.standBaris}>
-        <View style={styles.standKolom}>
-          <Text style={[styles.labelKecil, { color: colors.mutedForeground }]}>Stand lalu</Text>
-          <Text style={[styles.standLalu, { color: colors.foreground }]}>
-            {memuatStand ? '…' : (standLalu ?? '—')}
-          </Text>
-        </View>
-        <View style={styles.standKolomLebar}>
-          <Text style={[styles.labelKecil, { color: colors.mutedForeground }]}>Stand akhir</Text>
-          <Input
-            value={teksStand}
-            onChangeText={(v) => onUbahStand(v.replace(/[^0-9]/g, ''))}
-            placeholder="0"
-            keyboardType="number-pad"
-            className="h-12 text-lg"
-          />
-        </View>
+      <View style={styles.chipBaris}>
+        <ChipAngka label="Stand lalu" nilai={memuatStand ? '…' : (standLalu?.toString() ?? '—')} />
+        <ChipAngka label="Bulan lalu" nilai={pemakaianLalu != null ? `${pemakaianLalu} m³` : '—'} />
+        <ChipAngka
+          label="Pemakaian"
+          nilai={pemakaian == null ? '—' : `${pemakaian} m³`}
+          hasil
+          bahaya={anomali}
+        />
       </View>
 
-      <View style={styles.hasilBaris}>
-        <Text style={[styles.hasilPemakaian, { color: colors.foreground }]}>
-          {pemakaian == null ? '— m³' : `${pemakaian} m³`}
+      {deviasi != null ? (
+        <Text
+          style={[
+            styles.deviasi,
+            { color: anomali ? colors.destructive : colors.mutedForeground },
+          ]}
+        >
+          {deviasi >= 0 ? '+' : ''}
+          {deviasi.toFixed(0)}% dari bulan lalu
         </Text>
-        {deviasi != null ? (
-          <Text style={[styles.hasilDeviasi, { color: warnaDeviasi }]}>
-            {deviasi >= 0 ? '+' : ''}
-            {deviasi.toFixed(0)}% dari bulan lalu ({pemakaianLalu} m³)
-          </Text>
-        ) : pemakaianLalu != null ? (
-          <Text style={[styles.hasilDeviasi, { color: colors.mutedForeground }]}>
-            Bulan lalu {pemakaianLalu} m³
-          </Text>
-        ) : null}
-      </View>
+      ) : null}
 
       {anomali ? (
         <View style={styles.jarakAtas}>
@@ -739,8 +783,8 @@ function KartuStand({
             <AlertTitle>Pemakaian menyimpang jauh</AlertTitle>
             <AlertDescription>
               Selisihnya lebih dari {AMBANG_PERINGATAN}% terhadap bulan lalu. Periksa ulang roda
-              angka meter sebelum menyimpan — koreksi di kantor jauh lebih mahal daripada
-              melihat sekali lagi sekarang.
+              angka meter sebelum menyimpan — koreksi di kantor jauh lebih mahal daripada melihat
+              sekali lagi sekarang.
             </AlertDescription>
           </Alert>
         </View>
@@ -757,34 +801,49 @@ function KartuStand({
           </Alert>
         </View>
       ) : null}
+
+      {riwayat.length > 0 ? (
+        <Text style={[styles.riwayatBaris, { color: colors.mutedForeground }]} numberOfLines={1}>
+          {/*
+            Nama bulan PENDEK (Jan · Des · Nov) tanpa tahun dan tanpa satuan
+            berulang. Baris ini hanya pembanding sekilas terhadap angka yang
+            baru diketik; "Januari 2026 5 m³ · Desember 2025 7 m³ · …" tidak
+            muat di 390 px dan memaksa mata membaca yang sudah jelas.
+          */}
+          {riwayat.map((r) => `${labelBulanPendek(r.periode)} ${r.pemakaianM3}`).join(' · ')} m³
+        </Text>
+      ) : null}
     </GlassPanel>
   );
 }
 
-function KartuRiwayat({ pelanggan }: { pelanggan: PelangganRute }) {
+function ChipAngka({
+  label,
+  nilai,
+  hasil = false,
+  bahaya = false,
+}: {
+  label: string;
+  nilai: string;
+  hasil?: boolean;
+  bahaya?: boolean;
+}) {
   const { colors } = useTheme();
+  const latar = bahaya ? colors.nadaBahayaLatar : hasil ? colors.nadaHijauLatar : colors.permukaan;
+  const tinta = bahaya ? colors.nadaBahayaTinta : hasil ? colors.nadaHijauTinta : colors.foreground;
+  const tintaLabel = hasil || bahaya ? tinta : colors.mutedForeground;
+
   return (
-    <GlassPanel style={styles.kartu}>
-      <Text style={[styles.judulKartu, { color: colors.foreground }]}>
-        Riwayat Pembacaan Resmi
+    <View style={[styles.chip, { backgroundColor: latar, borderColor: colors.border }]}>
+      <Text numberOfLines={1} style={[styles.chipLabel, { color: tintaLabel }]}>
+        {label}
       </Text>
-      {pelanggan.riwayat.map((r) => (
-        <View key={r.periode} style={styles.riwayatBaris}>
-          <Text style={[styles.riwayatPeriode, { color: colors.mutedForeground }]}>
-            {labelPeriode(r.periode)}
-          </Text>
-          <Text style={[styles.riwayatStand, { color: colors.mutedForeground }]}>
-            {r.standLalu} → {r.standAkhir}
-          </Text>
-          <Text style={[styles.riwayatPakai, { color: colors.foreground }]}>
-            {r.pemakaianM3} m³
-          </Text>
-        </View>
-      ))}
-    </GlassPanel>
+      <Text numberOfLines={1} style={[styles.chipNilai, { color: tinta }]}>
+        {nilai}
+      </Text>
+    </View>
   );
 }
-
 function KartuPilihan({
   kondisi,
   onKondisi,
@@ -801,103 +860,90 @@ function KartuPilihan({
   onSegel: (v: boolean | null) => void;
 }) {
   const { colors } = useTheme();
+
+  /*
+   * DROPDOWN, bukan deretan pil — mengembalikan bentuk versi Flutter
+   * (`ShadSelect` di catat_meter_screen.dart:927, 949, 970) sekaligus
+   * menyamai `Select` dashboard web.
+   *
+   * Deretan pil yang sempat dipakai punya dua masalah nyata di lapangan:
+   * `labelKondisiMeter` berisi belasan kondisi, jadi pilnya membungkus jadi
+   * empat-lima baris dan mendorong tombol simpan jauh ke bawah; dan pilihan
+   * yang artinya berjauhan ("Normal" vs "Rumah Kosong") berdempetan sehingga
+   * salah tekan tidak terlihat. Dropdown menampilkan SATU nilai terpilih —
+   * yang justru selalu terbaca — dan tingginya tidak berubah-ubah.
+   *
+   * Tata letaknya juga mengikuti Flutter: kondisi selebar kartu, lalu
+   * kategori dan segel bersanding dua kolom.
+   */
+  const opsiKondisi = Object.entries(labelKondisiMeter).map(([value, label]) => ({ value, label }));
+  const opsiKategori = Object.entries(labelKategoriPembacaan).map(([value, label]) => ({
+    value,
+    label,
+  }));
+  const nilaiSegel = isSegel == null ? 'belum' : isSegel ? 'ya' : 'tidak';
+
   return (
     <GlassPanel style={styles.kartu}>
       <Text style={[styles.judulKartu, { color: colors.foreground }]}>Keterangan Pembacaan</Text>
 
-      <Text style={[styles.labelKecil, { color: colors.mutedForeground }]}>Kondisi meter</Text>
-      <View style={styles.pilihanGrid}>
-        {Object.entries(labelKondisiMeter).map(([kode, label]) => (
-          <Pilihan
-            key={kode}
-            label={label}
-            aktif={kondisi === kode}
-            onPress={() => onKondisi(kode)}
-          />
-        ))}
+      <View style={styles.jarakAtas}>
+        <SelectField
+          label="Kondisi Meter"
+          options={opsiKondisi}
+          value={kondisi}
+          onValueChange={onKondisi}
+        />
       </View>
 
-      <Text style={[styles.labelKecil, styles.jarakAtas, { color: colors.mutedForeground }]}>
-        Kategori pembacaan
-      </Text>
-      <View style={styles.pilihanGrid}>
-        {Object.entries(labelKategoriPembacaan).map(([kode, label]) => (
-          <Pilihan
-            key={kode}
-            label={label}
-            aktif={kategori === kode}
-            onPress={() => onKategori(kode)}
-          />
-        ))}
-      </View>
-
-      <Text style={[styles.labelKecil, styles.jarakAtas, { color: colors.mutedForeground }]}>
-        Kondisi segel
-      </Text>
-      <View style={styles.pilihanGrid}>
-        <Pilihan label="Tidak diperiksa" aktif={isSegel == null} onPress={() => onSegel(null)} />
-        <Pilihan label="Tersegel" aktif={isSegel === true} onPress={() => onSegel(true)} />
-        <Pilihan
-          label="Tidak tersegel"
-          aktif={isSegel === false}
-          onPress={() => onSegel(false)}
+      <View style={[styles.duaKolom, styles.jarakAtas]}>
+        <SelectField
+          label="Kategori"
+          options={opsiKategori}
+          value={kategori}
+          onValueChange={onKategori}
+          containerClassName="flex-1"
+        />
+        <SelectField
+          label="Kondisi Segel"
+          options={[
+            { value: 'belum', label: 'Tidak diperiksa' },
+            { value: 'ya', label: 'Tersegel' },
+            { value: 'tidak', label: 'Tidak tersegel' },
+          ]}
+          value={nilaiSegel}
+          onValueChange={(v) => onSegel(v === 'belum' ? null : v === 'ya')}
+          containerClassName="flex-1"
         />
       </View>
     </GlassPanel>
   );
 }
 
-function Pilihan({
-  label,
-  aktif,
-  onPress,
-}: {
-  label: string;
-  aktif: boolean;
-  onPress: () => void;
-}) {
-  const { colors } = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.pilihan,
-        {
-          backgroundColor: aktif ? colors.primary : colors.muted,
-          borderColor: aktif ? colors.primary : colors.border,
-        },
-        pressed && { opacity: 0.7 },
-      ]}
-    >
-      <Text
-        style={[
-          styles.pilihanTeks,
-          { color: aktif ? colors.primaryForeground : colors.foreground },
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
+/**
+ * Berkas bukti — varian **B1**: tiga slot persegi sama besar, video sebagai
+ * tombol memanjang di bawahnya.
+ *
+ * Slot "Stand Meter" bergaris PUTUS-PUTUS selama belum terisi ketika kondisi
+ * Normal, karena hanya foto itu yang wajib. Bentuknya sendiri yang memberi
+ * tahu, tanpa perlu tanda bintang atau kalimat tambahan — dan begitu terisi,
+ * garisnya menjadi utuh.
+ */
 function KartuBerkas({
   fotoPaths,
   memproses,
   onBukaSlot,
+  fotoStandWajib,
 }: {
   fotoPaths: Partial<Record<JenisBerkas, string>>;
   memproses: JenisBerkas | null;
   onBukaSlot: (j: JenisBerkas) => void;
+  fotoStandWajib: boolean;
 }) {
   const { colors } = useTheme();
   return (
-    <GlassPanel style={styles.kartu}>
+    <GlassPanel padding={Spasi.lg} style={styles.kartu}>
       <Text style={[styles.judulKartu, { color: colors.foreground }]}>Berkas Bukti</Text>
-      <Text style={[styles.keteranganKartu, { color: colors.mutedForeground }]}>
-        Foto stand wajib untuk pembacaan Normal — itu bukti yang dilihat verifikator saat
-        angkanya dipertanyakan.
-      </Text>
       <View style={styles.slotBaris}>
         {SLOT_FOTO.map((jenis) => (
           <SlotBerkas
@@ -905,16 +951,18 @@ function KartuBerkas({
             label={LABEL_SLOT[jenis]}
             uri={fotoPaths[jenis]}
             memproses={memproses === jenis}
+            wajibKosong={jenis === 'stand' && fotoStandWajib && fotoPaths.stand == null}
             onPress={() => onBukaSlot(jenis)}
           />
         ))}
       </View>
       <Pressable
         onPress={() => onBukaSlot('video')}
+        accessibilityRole="button"
         style={({ pressed }) => [
           styles.tombolVideo,
-          { borderColor: colors.border, backgroundColor: colors.muted },
-          pressed && { opacity: 0.7 },
+          { borderColor: colors.border, backgroundColor: colors.permukaan },
+          pressed && styles.ditekan,
         ]}
       >
         <Text style={[styles.tombolVideoTeks, { color: colors.foreground }]}>
@@ -922,7 +970,7 @@ function KartuBerkas({
             ? 'Memproses video…'
             : fotoPaths.video != null
               ? 'Video terlampir — ketuk untuk mengganti'
-              : 'Tambah video pembacaan (opsional)'}
+              : 'Tambah video (opsional)'}
         </Text>
       </Pressable>
     </GlassPanel>
@@ -933,29 +981,38 @@ function SlotBerkas({
   label,
   uri,
   memproses,
+  wajibKosong,
   onPress,
 }: {
   label: string;
   uri?: string;
   memproses: boolean;
+  wajibKosong: boolean;
   onPress: () => void;
 }) {
   const { colors } = useTheme();
+  const terisi = uri != null;
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={terisi ? `Ganti foto ${label}` : `Ambil foto ${label}`}
       style={({ pressed }) => [
         styles.slot,
-        { borderColor: uri != null ? colors.primary : colors.border, backgroundColor: colors.muted },
-        pressed && { opacity: 0.7 },
+        {
+          borderColor: terisi ? colors.primary : wajibKosong ? colors.primary : colors.border,
+          borderStyle: wajibKosong ? 'dashed' : 'solid',
+          backgroundColor: terisi ? colors.nadaHijauLatar : colors.permukaan,
+        },
+        pressed && styles.ditekan,
       ]}
     >
       {memproses ? (
         <ActivityIndicator size="small" color={colors.primary} />
-      ) : uri != null ? (
+      ) : terisi ? (
         <Image source={{ uri }} style={styles.slotGambar} resizeMode="cover" />
       ) : (
-        <Camera size={18} color={colors.mutedForeground} />
+        <Camera size={UkuranIkon.besar} color={colors.mutedForeground} />
       )}
       <Text numberOfLines={1} style={[styles.slotLabel, { color: colors.mutedForeground }]}>
         {label}
@@ -964,7 +1021,66 @@ function SlotBerkas({
   );
 }
 
-function KartuTambahan({
+// ── Bagian jarang-pakai, dilipat (K5) ─────────────────────────────────
+
+/**
+ * Baris tipis yang bisa dibuka. Nilai ringkasnya tampil di kanan SELAGI
+ * tertutup — itu inti gagasannya: sebagian besar hari petugas cukup membaca
+ * "Rp 113.800" tanpa pernah membuka isinya.
+ */
+function BarisLipat({
+  ikon: IkonBaris,
+  judul,
+  nilai,
+  terbuka,
+  onToggle,
+  children,
+}: {
+  ikon: React.ComponentType<LucideProps>;
+  judul: string;
+  nilai: string;
+  terbuka: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.lipat, { borderColor: colors.border, backgroundColor: colors.card }]}>
+      <Pressable
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: terbuka }}
+        style={({ pressed }) => [styles.lipatKepala, pressed && styles.ditekan]}
+      >
+        <IkonBaris size={UkuranIkon.sedang} color={colors.mutedForeground} />
+        <Text style={[styles.lipatJudul, { color: colors.foreground }]}>{judul}</Text>
+        <Text numberOfLines={1} style={[styles.lipatNilai, { color: colors.mutedForeground }]}>
+          {nilai}
+        </Text>
+        {terbuka ? (
+          <ChevronUp size={UkuranIkon.sedang} color={colors.mutedForeground} />
+        ) : (
+          <ChevronDown size={UkuranIkon.sedang} color={colors.mutedForeground} />
+        )}
+      </Pressable>
+      {terbuka ? (
+        <View style={[styles.lipatIsi, { borderTopColor: colors.border }]}>{children}</View>
+      ) : null}
+    </View>
+  );
+}
+
+/** Ringkasan yang tampil di kanan baris "Perbaikan data lapangan". */
+function ringkasTambahan(noHp: string, notelpAsal: string | null, usulan: string): string {
+  const gantiHp = noHp.trim().length > 0 && noHp.trim() !== (notelpAsal ?? '');
+  const adaUsulan = usulan.trim().length > 0;
+  if (gantiHp && adaUsulan) return 'HP & usulan';
+  if (gantiHp) return 'No. HP diubah';
+  if (adaUsulan) return 'Ada usulan';
+  return 'kosong';
+}
+
+function IsiTambahan({
   noHp,
   onNoHp,
   usulan,
@@ -977,35 +1093,30 @@ function KartuTambahan({
 }) {
   const { colors } = useTheme();
   return (
-    <GlassPanel style={styles.kartu}>
-      <Text style={[styles.judulKartu, { color: colors.foreground }]}>Perbaikan Data Lapangan</Text>
-      <Text style={[styles.keteranganKartu, { color: colors.mutedForeground }]}>
-        Diteruskan ke kantor bersama laporan. Nomor HP langsung diperbarui; usulan lain
-        diperiksa admin sebelum diterapkan.
-      </Text>
-
+    <>
       <Text style={[styles.labelKecil, { color: colors.mutedForeground }]}>No. HP pelanggan</Text>
       <Input
         value={noHp}
         onChangeText={onNoHp}
         placeholder="08xxxxxxxxxx"
         keyboardType="phone-pad"
+        className={Kelas.input}
       />
-
       <Text style={[styles.labelKecil, styles.jarakAtas, { color: colors.mutedForeground }]}>
         Usulan perubahan data
       </Text>
       <Textarea
         value={usulan}
         onChangeText={onUsulan}
-        placeholder="Mis. nama penghuni berubah, alamat bergeser, meter dipindah…"
+        placeholder="Mis. nama penghuni berubah, meter dipindah…"
         numberOfLines={3}
+        className={Kelas.areaTeks}
       />
-    </GlassPanel>
+    </>
   );
 }
 
-function KartuEstimasi({
+function IsiEstimasi({
   estimasiAir,
   biayaTetap,
   estimasiTotal,
@@ -1016,8 +1127,7 @@ function KartuEstimasi({
 }) {
   const { colors } = useTheme();
   return (
-    <GlassPanel style={styles.kartu}>
-      <Text style={[styles.judulKartu, { color: colors.foreground }]}>Estimasi Tagihan</Text>
+    <>
       <View style={styles.estimasiBaris}>
         <Text style={[styles.estimasiLabel, { color: colors.mutedForeground }]}>Uang air</Text>
         <Text style={[styles.estimasiNilai, { color: colors.foreground }]}>
@@ -1028,106 +1138,119 @@ function KartuEstimasi({
         <>
           <View style={styles.estimasiBaris}>
             <Text style={[styles.estimasiLabel, { color: colors.mutedForeground }]}>
-              Beban & admin
+              Beban &amp; admin
             </Text>
             <Text style={[styles.estimasiNilai, { color: colors.foreground }]}>
               {formatRupiah(biayaTetap)}
             </Text>
           </View>
           <View style={styles.estimasiBaris}>
-            <Text style={[styles.estimasiLabel, { color: colors.foreground, fontWeight: '600' }]}>
+            <Text style={[styles.estimasiLabel, { color: colors.foreground, fontWeight: Berat.semi }]}>
               Perkiraan total
             </Text>
-            <Text style={[styles.estimasiTotal, { color: P.emerald600 }]}>
+            <Text style={[styles.estimasiTotal, { color: colors.nadaHijauTinta }]}>
               {formatRupiah(estimasiTotal ?? estimasiAir)}
             </Text>
           </View>
         </>
       ) : null}
       <Text style={[styles.keteranganKartu, { color: colors.mutedForeground }]}>
-        Perkiraan untuk menjawab pelanggan di tempat. Angka resmi dihitung sistem saat closing —
-        jangan disebut sebagai tagihan final.
+        Perkiraan untuk menjawab pelanggan di tempat. Angka resmi dihitung sistem saat closing.
       </Text>
-    </GlassPanel>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  kartu: { marginTop: 12 },
-  judulKartu: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
-  keteranganKartu: { fontSize: 11.5, lineHeight: 17, marginTop: 8 },
-  labelKecil: { fontSize: 11.5, marginBottom: 6 },
-  jarakAtas: { marginTop: 12 },
+  kartu: { marginTop: Spasi.md },
+  judulKartu: { fontSize: Teks.base, fontWeight: Berat.medium, marginBottom: Spasi.md },
+  keteranganKartu: {
+    fontSize: Teks.xs,
+    lineHeight: TinggiBaris.xs,
+    marginTop: Spasi.sm,
+  },
+  labelKecil: { fontSize: Teks.xs, marginBottom: Spasi.sm },
+  jarakAtas: { marginTop: Spasi.md },
+  ditekan: { opacity: 0.7 },
+  ruangBawah: { height: 72 },
+  duaKolom: { flexDirection: 'row', gap: Spasi.md },
+  gps: { flexDirection: 'row', alignItems: 'center', gap: Spasi.xs + 1 },
+  gpsTeks: { fontSize: Teks.xs, fontWeight: Berat.semi, color: '#FFFFFF' },
+  gpsRedup: { color: 'rgba(255,255,255,0.55)' },
 
-  identitasBaris: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  identitasTeks: { flex: 1 },
-  nama: { fontSize: 15, fontWeight: '600' },
-  rincian: { fontSize: 12, marginTop: 2 },
-  alamat: { fontSize: 12, marginTop: 6 },
-  telp: { fontSize: 11.5, marginTop: 2 },
-  pilUrutan: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
+  // ── S4: chip Stand lalu · Bulan lalu · Pemakaian ──
+  chipBaris: { flexDirection: 'row', gap: Spasi.sm, marginTop: Spasi.md },
+  chip: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    paddingVertical: Spasi.sm,
+    paddingHorizontal: Spasi.xs,
+    borderRadius: Radius.kecil,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  pilUrutanTeks: { fontSize: 11, fontWeight: '600' },
-  gpsBaris: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
-  gpsTeks: { flex: 1, fontSize: 11.5 },
+  chipLabel: { fontSize: Teks.xs },
+  chipNilai: { fontSize: Teks.base, fontWeight: Berat.tebal, marginTop: 2 },
+  deviasi: { fontSize: Teks.xs, marginTop: Spasi.sm, textAlign: 'center' },
+  riwayatBaris: { fontSize: Teks.xs, marginTop: Spasi.md, textAlign: 'center' },
 
-  standBaris: { flexDirection: 'row', alignItems: 'flex-end', gap: 14, marginTop: 6 },
-  standKolom: { width: 92 },
-  standKolomLebar: { flex: 1 },
-  standLalu: { fontSize: 26, fontWeight: '700' },
-  hasilBaris: { marginTop: 12 },
-  hasilPemakaian: { fontSize: 22, fontWeight: '700' },
-  hasilDeviasi: { fontSize: 11.5, marginTop: 2 },
-
-  riwayatBaris: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 5 },
-  riwayatPeriode: { flex: 1, fontSize: 12 },
-  riwayatStand: { fontSize: 12 },
-  riwayatPakai: { width: 62, textAlign: 'right', fontSize: 12.5, fontWeight: '600' },
-
-  pilihanGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  pilihan: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  pilihanTeks: { fontSize: 11.5, fontWeight: '500' },
-
-  slotBaris: { flexDirection: 'row', gap: 10, marginTop: 10 },
+  // ── Berkas ──
+  slotBaris: { flexDirection: 'row', gap: Spasi.md },
   slot: {
     flex: 1,
     aspectRatio: 1,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: Radius.kecil,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: Spasi.sm,
     overflow: 'hidden',
   },
   slotGambar: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  slotLabel: { fontSize: 10.5 },
+  slotLabel: { fontSize: Teks.xs },
   tombolVideo: {
-    marginTop: 10,
-    paddingVertical: 11,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: Spasi.md,
+    height: TinggiKontrol.kecil,
+    justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: Radius.kecil,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  tombolVideoTeks: { fontSize: 12 },
+  tombolVideoTeks: { fontSize: Teks.xs },
+
+  // ── Bagian dilipat ──
+  lipatan: { marginTop: Spasi.md, gap: Spasi.sm },
+  lipat: { borderRadius: Radius.kartu, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  lipatKepala: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spasi.md,
+    paddingHorizontal: Spasi.lg,
+    paddingVertical: Spasi.md,
+  },
+  lipatJudul: { fontSize: Teks.sm, fontWeight: Berat.medium },
+  lipatNilai: { flex: 1, fontSize: Teks.xs, textAlign: 'right' },
+  lipatIsi: { paddingHorizontal: Spasi.lg, paddingBottom: Spasi.lg, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: Spasi.md },
 
   estimasiBaris: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: Spasi.xs,
   },
-  estimasiLabel: { fontSize: 12.5 },
-  estimasiNilai: { fontSize: 13, fontWeight: '500' },
-  estimasiTotal: { fontSize: 16, fontWeight: '700' },
+  estimasiLabel: { fontSize: Teks.sm },
+  estimasiNilai: { fontSize: Teks.sm, fontWeight: Berat.medium },
+  estimasiTotal: { fontSize: Teks.base, fontWeight: Berat.tebal },
 
-  navUrutan: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  // ── Tombol simpan mengambang (F2) ──
+  dudukanFab: { position: 'absolute', right: Spasi.xl, alignItems: 'flex-end' },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: Radius.bundar,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+  },
+  fabAktif: { boxShadow: '0px 8px 20px rgba(5, 150, 105, 0.36)' },
 });

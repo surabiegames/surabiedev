@@ -1,66 +1,65 @@
 /**
- * beranda-screen.tsx — ruang kerja PENCATAT METER. Padanan
- * `features/staff/dashboard/pencatat_home_screen.dart`.
+ * beranda-screen.tsx — beranda aplikasi Pencatat Meter, tab pertama.
  *
- * Pusatnya adalah CHART PROGRES rute yang DITUGASKAN ke akun ini (rute
- * dipetakan admin di dashboard web — pencatat tidak memilih sendiri): berapa
- * SL target sudah dicatat, berapa belum. Di bawahnya Launchpad aplikasi kerja
- * dan tiga pelanggan berikutnya yang harus dikunjungi.
+ * TATA LETAK: `features/beranda.md` + varian yang disetujui
+ * **H1 R1 M4 S1 L1**, ditambah **C1** (legend cincin) dan **E5** (Akun jadi
+ * tombol di header, bukan ubin).
  *
- * Verifikasi laporan TIDAK ada di sini — itu ranah supervisor/kantor.
+ * TANPA AKSI GANDA — ini aturan, bukan preferensi. Rute, Download, dan Upload
+ * sudah jadi tab di dock, jadi ubinnya di sini DIHAPUS; seksi "Aplikasi utama"
+ * bubar seluruhnya. Kartu "Antre kirim" dan spanduk penyimpanan sengaja TIDAK
+ * bisa diketuk — keduanya menampilkan angka, dan membuatnya bisa ditekan akan
+ * menjadikannya pintu kedua ke Upload.
+ *
+ * MODE GELAP AKTIF. Seluruh permukaan dan teks mengambil `useTheme().colors`;
+ * tidak ada hex MasterPalette yang ditulis langsung kecuali untuk hal yang
+ * memang berwarna sama di kedua mode: gradasi header dan busur cincin.
+ *
+ * Portal sudah dihapus, jadi tidak ada tombol kembali — sudut kiri header
+ * dipakai tombol Akun (identitas, versi, keluar).
  */
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { File } from 'expo-file-system';
 import {
   Bell,
-  CheckCircle2,
   ChevronRight,
-  ClipboardCheck,
   Clock,
-  CloudDownload,
-  CloudUpload,
   FileText,
-  Gauge,
-  Inbox,
   MapPinOff,
+  RotateCw,
   ShieldCheck,
   TriangleAlert,
-  WifiOff,
+  User,
+  type LucideProps,
 } from 'lucide-react-native';
 import {
+  formatUkuranByte,
   labelPeriode,
   type CatatTertunda,
   type PelangganRute,
   type RuteSaya,
 } from '@workspace/mobile-core';
-import { GlassPanel, MasterPalette as P, useTheme } from '@/components';
+import { MasterPalette as P, Radius, useTheme, type ThemeColors } from '@/components';
 import { daftarTertunda, jumlahTertunda, ruteSaya } from '@/features/baca-meter/repository';
 import { RingProgresTarget } from '@/features/petugas/ring-progres';
-import {
-  CompactStat,
-  IndikatorPenyimpanan,
-  LaunchpadItem,
-  WorkspaceScaffold,
-  WorkspaceSection,
-} from '@/features/petugas/workspace';
+import { LayarGradasi } from '@/features/petugas/layar-gradasi';
+
+/** Ambang peringatan antrean — nilai yang sama dipakai sejak versi Flutter. */
+const AMBANG_PERHATIAN = 400;
+
+type Ikon = React.ComponentType<LucideProps>;
 
 export function BerandaPencatatScreen({
-  onBack,
-  onBukaBacaMeter,
-  onBukaUnduh,
-  onBukaUpload,
+  onBukaAkun,
   onBukaRiwayat,
   onBukaInfoTagihan,
   onBukaNotifikasi,
   onBukaCadangan,
   onBukaCatat,
 }: {
-  onBack: () => void;
-  onBukaBacaMeter: () => void;
-  onBukaUnduh: () => void;
-  onBukaUpload: () => void;
+  onBukaAkun: () => void;
   onBukaRiwayat: () => void;
   onBukaInfoTagihan: () => void;
   onBukaNotifikasi: () => void;
@@ -106,124 +105,280 @@ export function BerandaPencatatScreen({
   );
 
   const berikutnya = (paket?.pelanggan ?? []).filter((p) => !p.sudahDicatat);
+  const adaRute = paket?.ruteKode != null;
+
+  const subjudul =
+    paket == null
+      ? 'Memuat rute…'
+      : [
+          paket.namaPencatat,
+          paket.rutes.length > 0 ? `${paket.rutes.length} rute` : null,
+          labelPeriode(paket.periode),
+        ]
+          .filter(Boolean)
+          .join(' · ');
 
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul="Pencatat Meter"
-      subjudul="Progres rute yang ditugaskan ke Anda"
-      onBack={onBack}
+      subjudul={subjudul}
+      kiri={
+        // E5 — menggantikan tombol kembali ke Portal, yang sudah dihapus.
+        <Pressable
+          onPress={onBukaAkun}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Akun"
+          style={({ pressed }) => [gaya.tombolAkun, pressed && gaya.ditekan]}
+        >
+          <User size={18} color="#FFFFFF" />
+        </Pressable>
+      }
+      kanan={
+        <View style={gaya.aksiKanan}>
+          {paket?.dariCache ? (
+            <View style={[gaya.lencanaOffline, { backgroundColor: colors.nadaBahayaLatar }]}>
+              <Text style={[gaya.lencanaOfflineTeks, { color: colors.nadaBahayaTinta }]}>
+                Offline
+              </Text>
+            </View>
+          ) : null}
+          <Pressable
+            onPress={() => void muat(true)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Segarkan"
+            style={({ pressed }) => pressed && gaya.ditekan}
+          >
+            <RotateCw size={18} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      }
       onSegarkan={() => void muat(true)}
       sedangMuat={memuat}
     >
-      <KartuTargetRute paket={paket} tertunda={tertunda} />
-
-      <View style={styles.jarakKecil} />
-      <IndikatorPenyimpanan
-        jumlahAntrean={tertunda}
-        totalByteFoto={byteFoto}
-        ikonAman={ShieldCheck}
-        ikonAntre={Inbox}
-        ikonBahaya={TriangleAlert}
-      />
-
-      <WorkspaceSection judul="Aplikasi" />
-      <GlassPanel padding={0} style={styles.launchpadPanel}>
-        <View style={styles.grid}>
-          <LaunchpadItem
-            ikon={Gauge}
-            label="Baca Meter"
-            gradasi={[P.teal, P.teal600]}
-            onPress={onBukaBacaMeter}
-          />
-          <LaunchpadItem
-            ikon={CloudDownload}
-            label="Download"
-            gradasi={[P.emerald400, P.emerald700]}
-            onPress={onBukaUnduh}
-          />
-          <LaunchpadItem
-            ikon={CloudUpload}
-            label="Upload"
-            gradasi={[P.rose400, P.rose700]}
-            badge={tertunda > 0 ? String(tertunda) : null}
-            onPress={onBukaUpload}
-          />
-          <LaunchpadItem
-            ikon={Clock}
-            label="Riwayat"
-            gradasi={[P.slate, P.slate600]}
-            onPress={onBukaRiwayat}
-          />
-          <LaunchpadItem
-            ikon={FileText}
-            label="Info Tagihan"
-            gradasi={[P.sky300, P.sky700]}
-            onPress={onBukaInfoTagihan}
-          />
-          <LaunchpadItem
-            ikon={Bell}
-            label="Notifikasi"
-            gradasi={[P.teal, P.sky700]}
-            onPress={onBukaNotifikasi}
-          />
-          <LaunchpadItem
-            ikon={ShieldCheck}
-            label="Cadangan"
-            gradasi={[P.emerald400, P.teal600]}
-            onPress={onBukaCadangan}
-          />
-          {/* Dua slot kosong menjaga grid tetap sejajar tiga kolom. */}
-          <View style={styles.slotKosong} />
-          <View style={styles.slotKosong} />
+        {/* ── R1 + C1: cincin progres beserta legend dan kaki target ── */}
+        <View style={[gaya.kartuRing, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {paket == null ? (
+            <ActivityIndicator color={colors.primary} style={gaya.pemuatRing} />
+          ) : !adaRute ? (
+            <View style={gaya.kosongRute}>
+              <MapPinOff size={34} color={colors.mutedForeground} />
+              <Text style={[gaya.kosongJudul, { color: colors.foreground }]}>
+                Belum ada rute ditugaskan
+              </Text>
+              <Text style={[gaya.kosongIsi, { color: colors.mutedForeground }]}>
+                Rute pencatatan dipetakan admin ke tiap petugas di dashboard web (menu Pencatat).
+                Hubungi admin bila rute Anda belum muncul, lalu tarik-segarkan halaman ini.
+              </Text>
+            </View>
+          ) : (
+            <>
+              <RingProgresTarget terbaca={paket.terbaca} target={paket.target} />
+              <View style={gaya.legend}>
+                <ItemLegend
+                  warna={P.emerald600}
+                  nilai={paket.terbaca}
+                  label="Sudah"
+                  colors={colors}
+                />
+                <ItemLegend
+                  warna={colors.muted}
+                  garisTepi={colors.border}
+                  nilai={Math.max(0, paket.target - paket.terbaca)}
+                  label="Belum"
+                  colors={colors}
+                />
+              </View>
+              <Text style={[gaya.kakiRing, { color: colors.mutedForeground }]}>
+                Target rute: {paket.target} sambungan langganan
+              </Text>
+            </>
+          )}
         </View>
-      </GlassPanel>
 
-      <WorkspaceSection
-        judul="Lanjutkan Rute"
-        aksi={
-          paket?.ruteKode != null ? (
-            <Text onPress={onBukaBacaMeter} style={[styles.tautan, { color: colors.primary }]}>
-              Lihat semua
+        {/* ── M4: kartu metrik blok bernada. Menampilkan angka, TIDAK diketuk. ── */}
+        <View style={gaya.metrik}>
+          <View style={[gaya.selMetrik, { backgroundColor: colors.nadaHijauLatar }]}>
+            <Text style={[gaya.metrikNilai, { color: colors.nadaHijauTinta }]}>
+              {paket?.dicatatSaya ?? 0}
             </Text>
-          ) : null
-        }
-      />
-
-      {paket == null ? (
-        <GlassPanel>
-          <Text style={{ color: colors.mutedForeground }}>Memuat rute…</Text>
-        </GlassPanel>
-      ) : paket.ruteKode == null ? (
-        <GlassPanel>
-          <View style={styles.baris}>
-            <MapPinOff size={18} color={colors.mutedForeground} />
-            <Text style={[styles.pesan, { color: colors.mutedForeground }]}>
-              Rute belum ditugaskan ke akun Anda — penugasan diatur admin di dashboard web (menu
-              Pencatat).
-            </Text>
+            <Text style={[gaya.metrikLabel, { color: colors.nadaHijauRedup }]}>Dicatat saya</Text>
           </View>
-        </GlassPanel>
-      ) : berikutnya.length === 0 ? (
-        <GlassPanel>
-          <View style={styles.baris}>
-            <CheckCircle2 size={18} color={colors.success} />
-            <Text style={[styles.pesan, { color: colors.mutedForeground }]}>
+          <View style={[gaya.selMetrik, { backgroundColor: colors.nadaBiruLatar }]}>
+            <Text style={[gaya.metrikNilai, { color: colors.nadaBiruTinta }]}>{tertunda}</Text>
+            <Text style={[gaya.metrikLabel, { color: colors.nadaBiruRedup }]}>Antre kirim</Text>
+          </View>
+        </View>
+
+        {/* ── S1: spanduk penyimpanan ── */}
+        <SpandukPenyimpanan jumlahAntrean={tertunda} totalByteFoto={byteFoto} />
+
+        {/* ── Lainnya: empat tujuan yang TIDAK ada di dock ── */}
+        <View>
+          <Text style={[gaya.seksiJudul, { color: colors.mutedForeground }]}>Lainnya</Text>
+          <View style={gaya.grid}>
+            <Ubin ikon={Clock} label="Riwayat" onPress={onBukaRiwayat} />
+            <Ubin ikon={FileText} label="Info tagihan" onPress={onBukaInfoTagihan} />
+            <Ubin ikon={Bell} label="Notifikasi" onPress={onBukaNotifikasi} />
+            <Ubin ikon={ShieldCheck} label="Cadangan" onPress={onBukaCadangan} />
+          </View>
+        </View>
+
+        {/* ── L1: lanjutkan rute ── */}
+        <View>
+          <Text style={[gaya.seksiJudul, { color: colors.mutedForeground }]}>Lanjutkan rute</Text>
+          {paket == null ? (
+            <Text style={[gaya.pesanKosong, { color: colors.mutedForeground }]}>Memuat rute…</Text>
+          ) : !adaRute ? (
+            <Text style={[gaya.pesanKosong, { color: colors.mutedForeground }]}>
+              Rute belum ditugaskan ke akun Anda — penugasan diatur admin di dashboard web.
+            </Text>
+          ) : berikutnya.length === 0 ? (
+            <Text style={[gaya.pesanKosong, { color: colors.mutedForeground }]}>
               Seluruh rute sudah dibaca. Kerja bagus!
             </Text>
-          </View>
-        </GlassPanel>
+          ) : (
+            <View style={gaya.daftarRute}>
+              {berikutnya.slice(0, 3).map((p) => (
+                <BarisRute
+                  key={p.nomorLangganan}
+                  pelanggan={p}
+                  onPress={() => onBukaCatat(p.nomorLangganan)}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+    </LayarGradasi>
+  );
+}
+
+// ── Kepingan ──────────────────────────────────────────────────────────
+
+function ItemLegend({
+  warna,
+  garisTepi,
+  nilai,
+  label,
+  colors,
+}: {
+  warna: string;
+  garisTepi?: string;
+  nilai: number;
+  label: string;
+  colors: ThemeColors;
+}) {
+  return (
+    <View style={gaya.legendItem}>
+      <View
+        style={[
+          gaya.legendTitik,
+          {
+            backgroundColor: warna,
+            borderWidth: garisTepi ? StyleSheet.hairlineWidth : 0,
+            borderColor: garisTepi,
+          },
+        ]}
+      />
+      <Text style={[gaya.legendNilai, { color: colors.foreground }]}>{nilai}</Text>
+      <Text style={[gaya.legendLabel, { color: colors.mutedForeground }]}>{label}</Text>
+    </View>
+  );
+}
+
+/** S1 — blok bernada dengan ikon perisai. Bukan tombol. */
+function SpandukPenyimpanan({
+  jumlahAntrean,
+  totalByteFoto,
+}: {
+  jumlahAntrean: number;
+  totalByteFoto: number;
+}) {
+  const { colors } = useTheme();
+  const aman = jumlahAntrean === 0;
+  const perhatian = jumlahAntrean >= AMBANG_PERHATIAN;
+
+  // Nada peringatan memakai rumpun Rose — di palet master, peringatan dan
+  // bahaya satu rumpun (tidak ada amber). Lihat catatan di palette.ts.
+  const latar = perhatian ? colors.nadaBahayaLatar : colors.nadaHijauLatar;
+  const tinta = perhatian ? colors.nadaBahayaTinta : colors.nadaHijauTinta;
+
+  const judul = aman
+    ? 'Penyimpanan aman.'
+    : perhatian
+      ? 'Segera upload — antrean menumpuk.'
+      : 'Antrean menunggu upload.';
+  const rincian = aman
+    ? ' Tidak ada hasil catat yang menunggu diunggah.'
+    : ` ${jumlahAntrean} laporan · ${formatUkuranByte(totalByteFoto)} menunggu diunggah.`;
+
+  return (
+    <View style={[gaya.spanduk, { backgroundColor: latar }]}>
+      {perhatian ? (
+        <TriangleAlert size={18} color={tinta} />
       ) : (
-        berikutnya
-          .slice(0, 3)
-          .map((p) => (
-            <BarisBerikutnya
-              key={p.nomorLangganan}
-              pelanggan={p}
-              onPress={() => onBukaCatat(p.nomorLangganan)}
-            />
-          ))
+        <ShieldCheck size={18} color={tinta} />
       )}
-    </WorkspaceScaffold>
+      <Text style={[gaya.spandukTeks, { color: tinta }]}>
+        <Text style={gaya.spandukTebal}>{judul}</Text>
+        {rincian}
+      </Text>
+    </View>
+  );
+}
+
+/** Ubin "Lainnya": ikon netral di sebelah label, grid dua kolom. */
+function Ubin({ ikon: IkonUbin, label, onPress }: { ikon: Ikon; label: string; onPress: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        gaya.ubin,
+        { backgroundColor: colors.permukaan, borderColor: colors.border },
+        pressed && gaya.ditekan,
+      ]}
+    >
+      <IkonUbin size={18} color={colors.mutedForeground} />
+      <Text numberOfLines={1} style={[gaya.ubinNama, { color: colors.foreground }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/** L1 — baris rute dengan kotak nomor urut. */
+function BarisRute({ pelanggan, onPress }: { pelanggan: PelangganRute; onPress: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        gaya.barisRute,
+        { backgroundColor: colors.permukaan },
+        pressed && gaya.ditekan,
+      ]}
+    >
+      <View style={[gaya.kotakUrut, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+        <Text style={[gaya.kotakUrutTeks, { color: colors.foreground }]}>
+          {pelanggan.urutan ?? '-'}
+        </Text>
+      </View>
+      <View style={gaya.barisTeks}>
+        <Text numberOfLines={1} style={[gaya.barisNama, { color: colors.foreground }]}>
+          {pelanggan.nama}
+        </Text>
+        {pelanggan.alamat != null ? (
+          <Text numberOfLines={1} style={[gaya.barisAlamat, { color: colors.mutedForeground }]}>
+            {pelanggan.alamat}
+          </Text>
+        ) : null}
+      </View>
+      <ChevronRight size={16} color={colors.mutedForeground} />
+    </Pressable>
   );
 }
 
@@ -249,165 +404,101 @@ function hitungByteFoto(antrean: CatatTertunda[]): number {
   return total;
 }
 
-/** Kartu pusat: identitas rute + cincin progres + hitungan pendukung. */
-function KartuTargetRute({ paket, tertunda }: { paket: RuteSaya | null; tertunda: number }) {
-  const { colors } = useTheme();
+// ── Gaya ── Nilai dari features/beranda.md; warna dari useTheme().
 
-  if (paket == null) {
-    return (
-      <GlassPanel padding={0} style={styles.kartuMemuat}>
-        <ActivityIndicator color={colors.primary} />
-      </GlassPanel>
-    );
-  }
+const gaya = StyleSheet.create({
+  layar: { flex: 1 },
+  ditekan: { opacity: 0.7 },
+  aksiKanan: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
-  if (paket.ruteKode == null) {
-    return (
-      <GlassPanel padding={18}>
-        <View style={styles.kosongTengah}>
-          <MapPinOff size={34} color={colors.mutedForeground} />
-          <Text style={[styles.kosongJudul, { color: colors.foreground }]}>
-            Belum ada rute ditugaskan
-          </Text>
-          <Text style={[styles.kosongIsi, { color: colors.mutedForeground }]}>
-            Rute pencatatan dipetakan admin ke tiap petugas di dashboard web (menu Pencatat).
-            Hubungi admin bila rute Anda belum muncul, lalu tarik-segarkan halaman ini.
-          </Text>
-        </View>
-      </GlassPanel>
-    );
-  }
+  tombolAkun: {
+    width: 32,
+    height: 32,
+    borderRadius: Radius.bundar,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  lencanaOffline: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20 },
+  lencanaOfflineTeks: { fontSize: 11, fontWeight: '600' },
 
-  const banyakRute = paket.rutes.length > 1;
 
-  return (
-    <GlassPanel padding={0} style={styles.kartuTarget}>
-      <View style={styles.baris}>
-        <View style={[styles.pilRute, { backgroundColor: P.emerald600 }]}>
-          <Text style={styles.pilRuteTeks}>
-            {banyakRute ? `${paket.rutes.length} rute` : paket.ruteKode}
-          </Text>
-        </View>
-        <View style={styles.identitasRute}>
-          <Text numberOfLines={1} style={[styles.ruteJudul, { color: colors.foreground }]}>
-            {banyakRute
-              ? `${paket.rutes.length} rute · ${paket.target} SL`
-              : (paket.seksiCater ?? 'Rute pencatatan Anda')}
-          </Text>
-          <Text style={[styles.rutePeriode, { color: colors.mutedForeground }]}>
-            {labelPeriode(paket.periode)}
-          </Text>
-        </View>
-        {paket.dariCache ? (
-          <View style={styles.offline}>
-            <WifiOff size={12} color={colors.destructive} />
-            <Text style={[styles.offlineTeks, { color: colors.destructive }]}>Offline</Text>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.jarakRing}>
-        <RingProgresTarget terbaca={paket.terbaca} target={paket.target} />
-      </View>
-
-      <View style={styles.statBaris}>
-        <CompactStat
-          label="Dicatat Saya (periode)"
-          nilai={String(paket.dicatatSaya)}
-          ikon={ClipboardCheck}
-        />
-        <CompactStat
-          label="Antre Kirim"
-          nilai={String(tertunda)}
-          ikon={CloudUpload}
-          bahaya={tertunda > 0}
-        />
-      </View>
-    </GlassPanel>
-  );
-}
-
-function BarisBerikutnya({
-  pelanggan,
-  onPress,
-}: {
-  pelanggan: PelangganRute;
-  onPress: () => void;
-}) {
-  const { colors } = useTheme();
-  return (
-    <GlassPanel padding={0} onPress={onPress} style={styles.barisBerikutnya}>
-      <View
-        style={[styles.bulatUrut, { backgroundColor: colors.muted, borderColor: colors.border }]}
-      >
-        <Text style={[styles.bulatUrutTeks, { color: colors.foreground }]}>
-          {pelanggan.urutan ?? '-'}
-        </Text>
-      </View>
-      <View style={styles.identitasPelanggan}>
-        <Text numberOfLines={1} style={[styles.namaPelanggan, { color: colors.foreground }]}>
-          {pelanggan.nama}
-        </Text>
-        {pelanggan.alamat != null ? (
-          <Text numberOfLines={1} style={[styles.alamat, { color: colors.mutedForeground }]}>
-            {pelanggan.alamat}
-          </Text>
-        ) : null}
-      </View>
-      {pelanggan.standLalu != null ? (
-        <Text style={[styles.standLalu, { color: colors.mutedForeground }]}>
-          Lalu {pelanggan.standLalu}
-        </Text>
-      ) : null}
-      <ChevronRight size={15} color={colors.mutedForeground} />
-    </GlassPanel>
-  );
-}
-
-const styles = StyleSheet.create({
-  jarakKecil: { height: 10 },
-  launchpadPanel: { paddingVertical: 16, paddingHorizontal: 8 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 14 },
-  slotKosong: { width: '33.333%' },
-  tautan: { fontSize: 11.5, fontWeight: '600' },
-
-  kartuMemuat: { paddingVertical: 40, alignItems: 'center', justifyContent: 'center' },
-  kartuTarget: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 18 },
-  baris: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pilRute: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 7 },
-  pilRuteTeks: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '700' },
-  identitasRute: { flex: 1 },
-  ruteJudul: { fontSize: 13, fontWeight: '600' },
-  rutePeriode: { fontSize: 11.5, marginTop: 1 },
-  offline: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  offlineTeks: { fontSize: 10.5 },
-  jarakRing: { marginTop: 18, marginBottom: 18 },
-  statBaris: { flexDirection: 'row', gap: 10 },
-
-  kosongTengah: { alignItems: 'center', gap: 10 },
+  kartuRing: {
+    borderRadius: Radius.kartu,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    alignItems: 'center',
+  },
+  pemuatRing: { height: 160 },
+  kosongRute: { alignItems: 'center', gap: 10 },
   kosongJudul: { fontSize: 15, fontWeight: '600' },
-  kosongIsi: { fontSize: 12, textAlign: 'center' },
-  pesan: { flex: 1, fontSize: 12.5, lineHeight: 18 },
+  kosongIsi: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
 
-  barisBerikutnya: {
+  // C1 — legend dua butir + kaki target.
+  legend: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 14 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendTitik: { width: 11, height: 11, borderRadius: 6 },
+  legendNilai: { fontSize: 13, fontWeight: '600' },
+  legendLabel: { fontSize: 12 },
+  kakiRing: { fontSize: 12, marginTop: 6 },
+
+  metrik: { flexDirection: 'row', gap: 10 },
+  selMetrik: { flex: 1, padding: 12, borderRadius: Radius.kontrol },
+  metrikNilai: { fontSize: 22, fontWeight: '500' },
+  metrikLabel: { fontSize: 12, marginTop: 2 },
+
+  spanduk: {
+    borderRadius: Radius.kontrol,
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginBottom: 8,
+    gap: 10,
   },
-  bulatUrut: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  spandukTeks: { flex: 1, fontSize: 12, lineHeight: 17 },
+  spandukTebal: { fontWeight: '600' },
+
+  seksiJudul: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    marginBottom: 10,
+  },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
+  ubin: {
+    width: '48%',
+    padding: 12,
+    borderRadius: Radius.kontrol,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  ubinNama: { flex: 1, fontSize: 11, fontWeight: '500' },
+
+  daftarRute: { gap: 8 },
+  barisRute: {
+    padding: 10,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  kotakUrut: {
+    width: 26,
+    height: 26,
+    borderRadius: Radius.kecil,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
   },
-  bulatUrutTeks: { fontSize: 12, fontWeight: '700' },
-  identitasPelanggan: { flex: 1 },
-  namaPelanggan: { fontSize: 13, fontWeight: '500' },
-  alamat: { fontSize: 11, marginTop: 1 },
-  standLalu: { fontSize: 11 },
+  kotakUrutTeks: { fontSize: 12, fontWeight: '600' },
+  barisTeks: { flex: 1, minWidth: 0 },
+  barisNama: { fontSize: 13, fontWeight: '500' },
+  barisAlamat: { fontSize: 11, marginTop: 1 },
+
+  pesanKosong: { fontSize: 12.5, lineHeight: 18 },
 });

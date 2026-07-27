@@ -7,7 +7,6 @@ export * from './theme';
 
 export { PremiumBackground } from './premium-background';
 export { GlassPanel, type GlassPanelProps } from './glass-panel';
-export { AppScaffold, type AppScaffoldProps } from './app-scaffold';
 export { BottomDock, type DockItem, type BottomDockProps } from './bottom-dock';
 
 export {
@@ -19,5 +18,3 @@ export {
   tonePrioritas,
 } from './status-badge';
 export { IconButton, type IconButtonProps } from './icon-button';
-export { PhotoBox, type PhotoBoxProps } from './photo-box';
-export { SectionHeader } from './section-header';

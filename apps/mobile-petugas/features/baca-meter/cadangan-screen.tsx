@@ -15,14 +15,16 @@
  * diambil lewat pengelola berkas.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import {
   Archive,
   CheckCircle2,
+  ChevronLeft,
   FileText,
   FolderOpen,
   RotateCcw,
+  RotateCw,
   Share2,
   TriangleAlert,
 } from 'lucide-react-native';
@@ -30,9 +32,19 @@ import { labelPeriode } from '@workspace/mobile-core';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Text as UIText } from '@/components/ui/text';
-import { GlassPanel, useTheme } from '@/components';
+import {
+  Berat,
+  GlassPanel,
+  Kelas,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
 import { DialogKonfirmasi } from '@/features/petugas/dialog-konfirmasi';
-import { CompactStat, WorkspaceScaffold } from '@/features/petugas/workspace';
+import { IsiStrip, LayarGradasi } from '@/features/petugas/layar-gradasi';
+import { CompactStat } from '@/features/petugas/workspace';
 import { daftarBundel, daftarCsvCatatan, lokasiFolder, type BundelPembacaan } from './backup';
 import { pulihkanDariCadangan } from './repository';
 
@@ -76,10 +88,39 @@ export function CadanganScreen({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul="Cadangan"
       subjudul="Jaring pengaman hasil catat di perangkat"
-      onBack={onBack}
+      kiri={
+        onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={({ pressed }) => pressed && styles.ditekan}
+          >
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+        ) : null
+      }
+      kanan={
+        <Pressable
+          onPress={() => void muat()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Segarkan"
+          style={({ pressed }) => pressed && styles.ditekan}
+        >
+          <RotateCw size={UkuranIkon.sedang} color="#FFFFFF" />
+        </Pressable>
+      }
+      strip={
+        <IsiStrip
+          kiri={`${bundel.length} bundel tersimpan`}
+          kanan={belumTerunggah > 0 ? `${belumTerunggah} belum terunggah` : null}
+        />
+      }
       onSegarkan={() => void muat()}
       sedangMuat={memuat}
     >
@@ -111,9 +152,9 @@ export function CadanganScreen({ onBack }: { onBack: () => void }) {
         </View>
       ) : null}
 
-      <GlassPanel padding={14} style={styles.jarak}>
+      <GlassPanel padding={Spasi.lg} style={styles.jarak}>
         <View style={styles.judulBaris}>
-          <RotateCcw size={17} color={colors.foreground} />
+          <RotateCcw size={UkuranIkon.besar} color={colors.foreground} />
           <Text style={[styles.judulKartu, { color: colors.foreground }]}>
             Pulihkan ke antrean
           </Text>
@@ -127,10 +168,10 @@ export function CadanganScreen({ onBack }: { onBack: () => void }) {
           variant="outline"
           onPress={() => setTanyaPulihkan(true)}
           disabled={belumTerunggah === 0}
-          className="mt-3 w-full"
+          className={`mt-3 ${Kelas.tombol}`}
         >
-          <RotateCcw size={15} color={colors.foreground} />
-          <UIText>
+          <RotateCcw size={UkuranIkon.kecil} color={colors.foreground} />
+          <UIText className={Kelas.tombolTeks}>
             {belumTerunggah === 0
               ? 'Tidak ada yang perlu dipulihkan'
               : `Pulihkan ${belumTerunggah} pembacaan`}
@@ -138,9 +179,9 @@ export function CadanganScreen({ onBack }: { onBack: () => void }) {
         </Button>
       </GlassPanel>
 
-      <GlassPanel padding={14} style={styles.jarak}>
+      <GlassPanel padding={Spasi.lg} style={styles.jarak}>
         <View style={styles.judulBaris}>
-          <FileText size={17} color={colors.foreground} />
+          <FileText size={UkuranIkon.besar} color={colors.foreground} />
           <Text style={[styles.judulKartu, { color: colors.foreground }]}>Berkas catatan (CSV)</Text>
         </View>
         <Text style={[styles.isiKartu, { color: colors.mutedForeground }]}>
@@ -160,9 +201,9 @@ export function CadanganScreen({ onBack }: { onBack: () => void }) {
                 </Text>
                 <Text style={[styles.csvBerkas, { color: colors.mutedForeground }]}>{f.nama}</Text>
               </View>
-              <Button variant="outline" onPress={() => void bagikan(f.uri)} className="h-9">
-                <Share2 size={14} color={colors.foreground} />
-                <UIText>Bagikan</UIText>
+              <Button variant="outline" onPress={() => void bagikan(f.uri)} className={Kelas.tombolBaris}>
+                <Share2 size={UkuranIkon.kecil} color={colors.foreground} />
+                <UIText className={Kelas.tombolTeks}>Bagikan</UIText>
               </Button>
             </View>
           ))
@@ -170,9 +211,9 @@ export function CadanganScreen({ onBack }: { onBack: () => void }) {
       </GlassPanel>
 
       {folder != null ? (
-        <GlassPanel padding={14} style={styles.jarak}>
+        <GlassPanel padding={Spasi.lg} style={styles.jarak}>
           <View style={styles.judulBaris}>
-            <FolderOpen size={17} color={colors.mutedForeground} />
+            <FolderOpen size={UkuranIkon.besar} color={colors.mutedForeground} />
             <Text style={[styles.judulKartu, { color: colors.foreground }]}>Lokasi berkas</Text>
           </View>
           <Text style={[styles.jalur, { color: colors.mutedForeground }]}>{folder}</Text>
@@ -210,28 +251,29 @@ export function CadanganScreen({ onBack }: { onBack: () => void }) {
           }
         }}
       />
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
 const styles = StyleSheet.create({
-  statBaris: { flexDirection: 'row', gap: 10 },
-  jarak: { marginTop: 14 },
-  tengah: { paddingVertical: 32, alignItems: 'center' },
-  judulBaris: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  judulKartu: { fontSize: 14, fontWeight: '600' },
-  isiKartu: { fontSize: 11.5, lineHeight: 17, marginTop: 8 },
-  kosongKecil: { fontSize: 11.5, marginTop: 10, lineHeight: 17 },
-  jalur: { fontSize: 10.5, marginTop: 8 },
+  ditekan: { opacity: 0.7 },
+  statBaris: { flexDirection: 'row', gap: Spasi.md },
+  jarak: { marginTop: Spasi.lg },
+  tengah: { paddingVertical: Spasi.xxl, alignItems: 'center' },
+  judulBaris: { flexDirection: 'row', alignItems: 'center', gap: Spasi.sm },
+  judulKartu: { fontSize: Teks.base, fontWeight: Berat.semi },
+  isiKartu: { fontSize: Teks.xs, lineHeight: TinggiBaris.xs, marginTop: Spasi.sm },
+  kosongKecil: { fontSize: Teks.xs, marginTop: Spasi.md, lineHeight: TinggiBaris.xs },
+  jalur: { fontSize: Teks.xs, marginTop: Spasi.sm },
   barisCsv: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
+    gap: Spasi.md,
+    paddingVertical: Spasi.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: 10,
+    marginTop: Spasi.md,
   },
   barisCsvTeks: { flex: 1 },
-  csvNama: { fontSize: 13, fontWeight: '600' },
-  csvBerkas: { fontSize: 10.5, marginTop: 2 },
+  csvNama: { fontSize: Teks.sm, fontWeight: Berat.semi },
+  csvBerkas: { fontSize: Teks.xs, marginTop: 2 },
 });

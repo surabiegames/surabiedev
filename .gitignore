@@ -17,6 +17,9 @@ coverage
 .next/
 out/
 
+.expo/
+*.log
+
 # production
 build
 dist

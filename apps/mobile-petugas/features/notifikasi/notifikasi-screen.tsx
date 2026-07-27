@@ -3,14 +3,31 @@
  * `features/staff/notifikasi/notifikasi_screen.dart`.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { BellOff, CheckCheck, TriangleAlert } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  BellOff,
+  CheckCheck,
+  ChevronLeft,
+  RotateCw,
+  TriangleAlert,
+} from 'lucide-react-native';
 import { ApiException, formatWaktuLokal } from '@workspace/mobile-core';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Text as UIText } from '@/components/ui/text';
-import { GlassPanel, MasterPalette as P, useTheme } from '@/components';
-import { WorkspaceScaffold } from '@/features/petugas/workspace';
+import {
+  Radius,
+  Berat,
+  GlassPanel,
+  Kelas,
+  MasterPalette as P,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
+import { IsiStrip, LayarGradasi } from '@/features/petugas/layar-gradasi';
 import { daftarNotifikasi, tandaiDibaca, tandaiSemuaDibaca, type Notifikasi } from './repository';
 
 export function NotifikasiScreen({ onBack }: { onBack: () => void }) {
@@ -60,10 +77,39 @@ export function NotifikasiScreen({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul="Notifikasi"
-      subjudul={belumDibaca > 0 ? `${belumDibaca} belum dibaca` : 'Semua sudah dibaca'}
-      onBack={onBack}
+      subjudul="Kabar dari kantor"
+      kiri={
+        onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={({ pressed }) => pressed && styles.ditekan}
+          >
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+        ) : null
+      }
+      kanan={
+        <Pressable
+          onPress={() => void muat()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Segarkan"
+          style={({ pressed }) => pressed && styles.ditekan}
+        >
+          <RotateCw size={UkuranIkon.sedang} color="#FFFFFF" />
+        </Pressable>
+      }
+      strip={
+        <IsiStrip
+          kiri={belumDibaca > 0 ? `${belumDibaca} belum dibaca` : 'Semua sudah dibaca'}
+          kanan={daftar.length > 0 ? `${daftar.length} total` : null}
+        />
+      }
       onSegarkan={() => void muat()}
       sedangMuat={memuat}
     >
@@ -78,7 +124,7 @@ export function NotifikasiScreen({ onBack }: { onBack: () => void }) {
 
       {belumDibaca > 0 ? (
         <Button variant="outline" onPress={bacaSemua} className="mb-3 w-full">
-          <CheckCheck size={15} color={colors.foreground} />
+          <CheckCheck size={UkuranIkon.kecil} color={colors.foreground} />
           <UIText>Tandai semua terbaca</UIText>
         </Button>
       ) : null}
@@ -89,7 +135,7 @@ export function NotifikasiScreen({ onBack }: { onBack: () => void }) {
         </View>
       ) : daftar.length === 0 ? (
         <View style={styles.kosong}>
-          <BellOff size={38} color={colors.mutedForeground} />
+          <BellOff size={UkuranIkon.kosong} color={colors.mutedForeground} />
           <Text style={[styles.kosongTeks, { color: colors.mutedForeground }]}>
             Belum ada notifikasi.
           </Text>
@@ -110,19 +156,20 @@ export function NotifikasiScreen({ onBack }: { onBack: () => void }) {
           </GlassPanel>
         ))
       )}
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
 const styles = StyleSheet.create({
-  jarak: { marginBottom: 12 },
+  ditekan: { opacity: 0.7 },
+  jarak: { marginBottom: Spasi.md },
   tengah: { paddingVertical: 48, alignItems: 'center' },
-  kosong: { paddingVertical: 44, alignItems: 'center', gap: 10 },
-  kosongTeks: { fontSize: 12.5 },
-  baris: { marginBottom: 8 },
-  barisAtas: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  titik: { width: 7, height: 7, borderRadius: 4 },
-  judul: { flex: 1, fontSize: 13, fontWeight: '600' },
-  isi: { fontSize: 12, marginTop: 5, lineHeight: 18 },
-  waktu: { fontSize: 10.5, marginTop: 6 },
+  kosong: { paddingVertical: 44, alignItems: 'center', gap: Spasi.md },
+  kosongTeks: { fontSize: Teks.xs },
+  baris: { marginBottom: Spasi.sm },
+  barisAtas: { flexDirection: 'row', alignItems: 'center', gap: Spasi.sm },
+  titik: { width: 7, height: 7, borderRadius: Radius.kontrol },
+  judul: { flex: 1, fontSize: Teks.sm, fontWeight: '600' },
+  isi: { fontSize: Teks.xs, marginTop: Spasi.sm, lineHeight: TinggiBaris.xs },
+  waktu: { fontSize: Teks.xs, marginTop: Spasi.sm },
 });

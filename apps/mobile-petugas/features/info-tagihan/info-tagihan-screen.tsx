@@ -8,15 +8,28 @@
  * sama, perdebatan di depan rumah tidak akan pernah selesai.
  */
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { Search, TriangleAlert } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ChevronLeft,
+  Search,
+  TriangleAlert,
+} from 'lucide-react-native';
 import { ApiException, type CekTagihanResult } from '@workspace/mobile-core';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text as UIText } from '@/components/ui/text';
-import { GlassPanel, useTheme } from '@/components';
-import { WorkspaceScaffold } from '@/features/petugas/workspace';
+import {
+  Berat,
+  GlassPanel,
+  Kelas,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
+import { LayarGradasi } from '@/features/petugas/layar-gradasi';
 import { buatCekTagihanRepository } from './repository';
 import { HasilCekTagihanView } from './hasil-view';
 
@@ -53,10 +66,22 @@ export function InfoTagihanScreen({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul="Info Tagihan"
       subjudul="Periksa rekening pelanggan di lokasi"
-      onBack={onBack}
+      kiri={
+        onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={({ pressed }) => pressed && styles.ditekan}
+          >
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+        ) : null
+      }
     >
       <GlassPanel padding={14}>
         <Text style={[styles.label, { color: colors.foreground }]}>Nomor langganan</Text>
@@ -70,11 +95,11 @@ export function InfoTagihanScreen({ onBack }: { onBack: () => void }) {
           onSubmitEditing={cek}
           returnKeyType="search"
         />
-        <Button onPress={cek} disabled={memuat} className="mt-3 h-11 w-full">
+        <Button onPress={cek} disabled={memuat} className={`mt-3 ${Kelas.tombol}`}>
           {memuat ? (
             <ActivityIndicator size="small" color={colors.primaryForeground} />
           ) : (
-            <Search size={16} color={colors.primaryForeground} />
+            <Search size={UkuranIkon.kecil} color={colors.primaryForeground} />
           )}
           <UIText>{memuat ? 'Memeriksa…' : 'Cek Tagihan'}</UIText>
         </Button>
@@ -97,12 +122,13 @@ export function InfoTagihanScreen({ onBack }: { onBack: () => void }) {
           <HasilCekTagihanView hasil={hasil} />
         </View>
       ) : null}
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 13, fontWeight: '500', marginBottom: 6 },
-  catatan: { fontSize: 11.5, marginTop: 10, lineHeight: 17 },
-  jarak: { marginTop: 14 },
+  ditekan: { opacity: 0.7 },
+  label: { fontSize: Teks.sm, fontWeight: '500', marginBottom: Spasi.sm },
+  catatan: { fontSize: Teks.xs, marginTop: Spasi.md, lineHeight: TinggiBaris.xs },
+  jarak: { marginTop: Spasi.lg },
 });

@@ -1,137 +1,99 @@
 /**
- * ring-progres.tsx — cincin progres target pencatatan. Padanan
- * `RingProgresTarget` (`CustomPainter` Flutter → react-native-svg).
+ * ring-progres.tsx — cincin progres target pencatatan.
+ *
+ * Bentuknya mengikuti opsi **R1** yang disetujui (mockup revisi 3) dan angka
+ * di `features/beranda.md`: bingkai 160, jari-jari 68, tebal 14, busur
+ * bergradasi Emerald 400 → Emerald 600, persentase 30/500 Slate 900, label 12
+ * Slate 400.
  *
  * Chart magnitude bagian-dari-keutuhan: SL yang SUDAH dicatat terhadap total
  * target rute.
  *
- * IDENTITAS TIDAK BERGANTUNG WARNA SEMATA — angka dan legend teks selalu
- * menyertainya. Petugas membaca layar ini di bawah matahari, kadang dengan
- * mata yang tidak membedakan hijau dan abu dengan baik; sebuah busur tanpa
- * angka tidak memberi tahu apa pun.
+ * IDENTITAS TIDAK BERGANTUNG WARNA SEMATA — angka persentase dan kata
+ * "terbaca" selalu ada di tengah cincin. Petugas membaca layar ini di bawah
+ * matahari, kadang dengan mata yang tidak membedakan hijau dan abu dengan
+ * baik; sebuah busur tanpa angka tidak memberi tahu apa pun.
+ *
+ * Teks tengah sengaja `View` beroverlay DI ATAS `Svg`, bukan `SvgText` di
+ * dalamnya: dengan cara ini penskalaan font sistem dan pembaca layar tetap
+ * bekerja, dua hal yang hilang begitu teks pindah ke dalam SVG.
  */
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { MasterPalette as P, useTheme } from '@/components';
+import { Berat, MasterPalette as P } from '@/components';
 
-const TEBAL = 16;
+/** Semua dari beranda.md — jangan diubah tanpa memperbarui spesifikasi. */
+const UKURAN = 160;
+const JARI = 68;
+const TEBAL = 14;
 
 export function RingProgresTarget({
   terbaca,
   target,
-  ukuran = 172,
 }: {
   /** SL yang sudah dicatat pada periode berjalan. */
   terbaca: number;
   /** Total SL target rute. */
   target: number;
-  ukuran?: number;
 }) {
-  const { colors } = useTheme();
-
   const rasio = target === 0 ? 0 : Math.min(1, Math.max(0, terbaca / target));
   const persen = Math.round(rasio * 100);
-  const belum = Math.max(0, target - terbaca);
 
-  const jari = (ukuran - TEBAL) / 2;
-  const keliling = 2 * Math.PI * jari;
+  const keliling = 2 * Math.PI * JARI;
   // strokeDasharray menggambar busur; sisanya dibiarkan kosong. Rotasi -90°
   // memindahkan titik mulai dari jam 3 ke jam 12, searah jarum jam.
   const panjangBusur = keliling * rasio;
+  const tengah = UKURAN / 2;
 
   return (
-    <View style={styles.wrap}>
-      <View style={{ width: ukuran, height: ukuran }}>
-        <Svg width={ukuran} height={ukuran}>
-          <Defs>
-            <LinearGradient id="isiRing" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor={P.emerald} />
-              <Stop offset="1" stopColor={P.emerald600} />
-            </LinearGradient>
-          </Defs>
-          <Circle
-            cx={ukuran / 2}
-            cy={ukuran / 2}
-            r={jari}
-            stroke={colors.muted}
-            strokeWidth={TEBAL}
-            fill="none"
-          />
-          {rasio > 0 ? (
-            <Circle
-              cx={ukuran / 2}
-              cy={ukuran / 2}
-              r={jari}
-              stroke="url(#isiRing)"
-              strokeWidth={TEBAL}
-              strokeLinecap="round"
-              strokeDasharray={`${panjangBusur} ${keliling}`}
-              fill="none"
-              transform={`rotate(-90 ${ukuran / 2} ${ukuran / 2})`}
-            />
-          ) : null}
-        </Svg>
-        <View style={[styles.tengah, { width: ukuran, height: ukuran }]}>
-          <Text style={[styles.persen, { color: P.emerald600 }]}>{persen}%</Text>
-          <Text style={[styles.persenLabel, { color: colors.mutedForeground }]}>terbaca</Text>
-        </View>
-      </View>
-
-      <View style={styles.legend}>
-        <LegendRing warna={P.emerald600} label="Sudah Dicatat" nilai={terbaca} />
-        <LegendRing
-          warna={colors.muted}
-          garisTepi={colors.border}
-          label="Belum Dicatat"
-          nilai={belum}
+    <View style={styles.bingkai}>
+      <Svg width={UKURAN} height={UKURAN}>
+        <Defs>
+          <LinearGradient id="isiRing" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor={P.emerald400} />
+            <Stop offset="1" stopColor={P.emerald600} />
+          </LinearGradient>
+        </Defs>
+        <Circle
+          cx={tengah}
+          cy={tengah}
+          r={JARI}
+          stroke={P.slate200}
+          strokeWidth={TEBAL}
+          fill="none"
         />
+        {rasio > 0 ? (
+          <Circle
+            cx={tengah}
+            cy={tengah}
+            r={JARI}
+            stroke="url(#isiRing)"
+            strokeWidth={TEBAL}
+            strokeLinecap="round"
+            strokeDasharray={`${panjangBusur} ${keliling}`}
+            fill="none"
+            transform={`rotate(-90 ${tengah} ${tengah})`}
+          />
+        ) : null}
+      </Svg>
+      <View style={styles.tengah} pointerEvents="none">
+        <Text style={styles.persen}>{persen}%</Text>
+        <Text style={styles.label}>terbaca</Text>
       </View>
-      <Text style={[styles.kaki, { color: colors.mutedForeground }]}>
-        Target rute: {target} sambungan langganan (SL)
-      </Text>
-    </View>
-  );
-}
-
-function LegendRing({
-  warna,
-  garisTepi,
-  label,
-  nilai,
-}: {
-  warna: string;
-  garisTepi?: string;
-  label: string;
-  nilai: number;
-}) {
-  const { colors } = useTheme();
-  return (
-    <View style={styles.legendItem}>
-      <View
-        style={[
-          styles.titik,
-          {
-            backgroundColor: warna,
-            borderWidth: garisTepi ? StyleSheet.hairlineWidth : 0,
-            borderColor: garisTepi,
-          },
-        ]}
-      />
-      <Text style={[styles.legendNilai, { color: colors.foreground }]}>{nilai}</Text>
-      <Text style={[styles.legendLabel, { color: colors.mutedForeground }]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center' },
-  tengah: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-  persen: { fontSize: 40, fontWeight: '700', lineHeight: 44 },
-  persenLabel: { fontSize: 11, marginTop: 2 },
-  legend: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 14 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  titik: { width: 11, height: 11, borderRadius: 6 },
-  legendNilai: { fontSize: 13, fontWeight: '600' },
-  legendLabel: { fontSize: 11.5 },
-  kaki: { fontSize: 11.5, marginTop: 6 },
+  bingkai: { width: UKURAN, height: UKURAN },
+  tengah: {
+    position: 'absolute',
+    width: UKURAN,
+    height: UKURAN,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  persen: { fontSize: 30, fontWeight: Berat.medium, color: P.slate900, lineHeight: 34 },
+  label: { fontSize: 12, color: P.slate },
 });

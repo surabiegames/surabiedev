@@ -49,6 +49,7 @@ const fmtTanggalLokal = new Intl.DateTimeFormat('id-ID', {
   month: 'short',
   year: 'numeric',
 });
+const fmtBulanPendek = new Intl.DateTimeFormat('id-ID', { month: 'short', timeZone: 'UTC' });
 const fmtWaktuLokal = new Intl.DateTimeFormat('id-ID', {
   hour: '2-digit',
   minute: '2-digit',
@@ -58,6 +59,15 @@ const fmtWaktuLokal = new Intl.DateTimeFormat('id-ID', {
 /** "202605" → "Mei 2026". */
 export function labelPeriode(thbl: number): string {
   return fmtPeriode.format(dateDariThbl(thbl));
+}
+
+/**
+ * "202605" → "Mei". Nama bulan SAJA, bentuk pendek — untuk tempat sempit
+ * seperti baris riwayat di layar catat, di mana tahunnya sudah jelas dari
+ * konteks dan mengulangnya tiga kali hanya menghabiskan lebar.
+ */
+export function labelBulanPendek(thbl: number): string {
+  return fmtBulanPendek.format(dateDariThbl(thbl));
 }
 
 // ---- Uang ----

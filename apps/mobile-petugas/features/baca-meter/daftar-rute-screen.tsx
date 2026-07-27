@@ -15,10 +15,11 @@
  * kapan kuota dan foto besarnya terkirim.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import {
   BadgeCheck,
+  ChevronLeft,
   ChevronRight,
   CloudDownload,
   CloudUpload,
@@ -38,8 +39,20 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Text as UIText } from '@/components/ui/text';
-import { GlassPanel, MasterPalette as P, useTheme } from '@/components';
-import { WorkspaceScaffold } from '@/features/petugas/workspace';
+import {
+  Radius,
+  Berat,
+  GlassPanel,
+  Kelas,
+  MasterPalette as P,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  TinggiKontrol,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
+import { IsiStrip, LayarGradasi } from '@/features/petugas/layar-gradasi';
 import { jumlahTertunda, periodeCatatSekarang, ruteSaya } from './repository';
 
 export function DaftarRuteScreen({
@@ -47,7 +60,8 @@ export function DaftarRuteScreen({
   onBukaRute,
   onBukaAntrean,
 }: {
-  onBack: () => void;
+  /** Opsional: sebagai TAB akar, layar ini tidak punya tempat kembali. */
+  onBack?: () => void;
   onBukaRute: (kodeRute: string) => void;
   onBukaAntrean: () => void;
 }) {
@@ -89,11 +103,47 @@ export function DaftarRuteScreen({
   const terbacaRute = (r: RuteRingkas) =>
     (paket?.pelanggan ?? []).filter((p) => p.ruteKode === r.kode && p.sudahDicatat).length;
 
+  const terbacaTotal = paket?.terbaca ?? 0;
+  const targetTotal = paket?.target ?? 0;
+
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul="Baca Meter"
       subjudul={`Pilih rute · ${labelPeriode(periode)}`}
-      onBack={onBack}
+      kiri={
+        onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={({ pressed }) => pressed && styles.ditekan}
+          >
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+        ) : null
+      }
+      kanan={
+        <Pressable
+          onPress={() => void muat(true)}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Segarkan"
+          style={({ pressed }) => pressed && styles.ditekan}
+        >
+          <RotateCw size={UkuranIkon.sedang} color="#FFFFFF" />
+        </Pressable>
+      }
+      // Strip meringkas seluruh beban kerja hari ini dalam satu baris, jadi
+      // petugas tahu posisinya tanpa membaca kartu ringkasan di bawah.
+      strip={
+        paket != null && paket.rutes.length > 0 ? (
+          <IsiStrip
+            kiri={`${paket.rutes.length} rute · ${targetTotal} sambungan`}
+            kanan={`${terbacaTotal}/${targetTotal}`}
+          />
+        ) : null
+      }
       onSegarkan={() => void muat(true)}
       sedangMuat={memuat}
     >
@@ -107,14 +157,14 @@ export function DaftarRuteScreen({
             <AlertTitle>Gagal mengunduh rute</AlertTitle>
             <AlertDescription>{galat}</AlertDescription>
           </Alert>
-          <Button variant="outline" onPress={() => void muat(true)} className="mt-3 w-full">
-            <RotateCw size={15} color={colors.foreground} />
-            <UIText>Coba Lagi</UIText>
+          <Button variant="outline" onPress={() => void muat(true)} className={`mt-3 ${Kelas.tombol}`}>
+            <RotateCw size={UkuranIkon.kecil} color={colors.foreground} />
+            <UIText className={Kelas.tombolTeks}>Coba Lagi</UIText>
           </Button>
         </View>
       ) : paket != null && paket.rutes.length === 0 ? (
         <View style={styles.kosong}>
-          <MapPinOff size={40} color={colors.mutedForeground} />
+          <MapPinOff size={UkuranIkon.kosong} color={colors.mutedForeground} />
           <Text style={[styles.kosongTeks, { color: colors.mutedForeground }]}>
             Rute belum ditugaskan ke akun Anda. Penugasan diatur admin di dashboard web (menu
             Pemetaan Rute) — hubungi admin bila belum ada, lalu tarik-segarkan halaman ini.
@@ -137,7 +187,7 @@ export function DaftarRuteScreen({
           ))}
         </>
       ) : null}
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
@@ -160,10 +210,17 @@ function RingkasanCatat({
           <Text style={styles.pilRuteTeks}>{paket.rutes.length} rute</Text>
         </View>
         {paket.dariCache ? <ChipKecil ikon={WifiOff} label="Offline" bahaya /> : null}
+        {/*
+          Pressable, BUKAN <Text onPress> yang membungkus chip. ChipKecil
+          adalah View, dan View di dalam Text (inline view) wajib berdimensi
+          eksplisit di Android — tanpa itu chip "n antre" gepeng dan menimpa
+          tetangganya. Pressable memberi perilaku ketuk yang sama tanpa
+          menyeret chip ke dalam konteks teks.
+        */}
         {tertunda > 0 ? (
-          <Text onPress={onBukaAntrean}>
+          <Pressable onPress={onBukaAntrean} style={({ pressed }) => pressed && styles.ditekan}>
             <ChipKecil ikon={CloudUpload} label={`${tertunda} antre`} />
-          </Text>
+          </Pressable>
         ) : null}
         <View style={styles.dorong} />
         <Text style={[styles.ringkasanAngka, { color: colors.mutedForeground }]}>
@@ -208,9 +265,9 @@ function KartuRute({
           ]}
         >
           {selesai ? (
-            <BadgeCheck size={20} color="#FFFFFF" />
+            <BadgeCheck size={UkuranIkon.besar} color="#FFFFFF" />
           ) : (
-            <MapIcon size={20} color={colors.mutedForeground} />
+            <MapIcon size={UkuranIkon.besar} color={colors.mutedForeground} />
           )}
         </View>
         <View style={styles.ruteTeks}>
@@ -229,7 +286,7 @@ function KartuRute({
         >
           {terbaca}/{target}
         </Text>
-        <ChevronRight size={16} color={colors.mutedForeground} />
+        <ChevronRight size={UkuranIkon.sedang} color={colors.mutedForeground} />
       </View>
       <BarProgres rasio={rasio} />
     </GlassPanel>
@@ -264,44 +321,68 @@ function ChipKecil({
   const warna = bahaya ? colors.destructive : colors.mutedForeground;
   return (
     <View style={[styles.chip, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-      <Ikon size={11} color={warna} />
+      <Ikon size={UkuranIkon.kecil - 2} color={warna} />
       <Text style={[styles.chipTeks, { color: warna }]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tengah: { paddingVertical: 48, alignItems: 'center' },
-  kosong: { paddingVertical: 40, alignItems: 'center', gap: 12 },
-  kosongTeks: { fontSize: 12.5, textAlign: 'center', lineHeight: 19 },
+  tengah: { paddingVertical: Spasi.xxl + Spasi.lg, alignItems: 'center' },
+  kosong: { paddingVertical: Spasi.xxl, alignItems: 'center', gap: Spasi.md },
+  kosongTeks: { fontSize: Teks.sm, textAlign: 'center', lineHeight: TinggiBaris.sm },
+  ditekan: { opacity: 0.6 },
 
-  ringkasanBaris: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  pilRute: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  pilRuteTeks: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  ringkasanBaris: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spasi.sm,
+    marginBottom: Spasi.md,
+  },
+  pilRute: { paddingHorizontal: Spasi.sm, paddingVertical: Spasi.xs, borderRadius: Radius.kontrol },
+  pilRuteTeks: { color: '#FFFFFF', fontSize: Teks.xs, fontWeight: Berat.tebal },
   dorong: { flex: 1 },
-  ringkasanAngka: { fontSize: 11.5 },
-  jejakUnduh: { fontSize: 10.5, marginTop: 8 },
+  ringkasanAngka: { fontSize: Teks.xs },
+  jejakUnduh: { fontSize: Teks.xs, marginTop: Spasi.sm },
 
-  subjudulDaftar: { fontSize: 13, fontWeight: '700', marginTop: 16, marginBottom: 8 },
-  kartuRute: { marginBottom: 8 },
-  ruteBaris: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
-  ikonRute: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  subjudulDaftar: {
+    fontSize: Teks.base,
+    fontWeight: Berat.tebal,
+    marginTop: Spasi.xl,
+    marginBottom: Spasi.md,
+  },
+  kartuRute: { marginBottom: Spasi.md },
+  ruteBaris: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spasi.md,
+    marginBottom: Spasi.md,
+  },
+  ikonRute: {
+    width: TinggiKontrol.baku,
+    height: TinggiKontrol.baku,
+    borderRadius: Radius.kontrol,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   ruteTeks: { flex: 1 },
-  ruteKode: { fontSize: 13, fontWeight: '700' },
-  ruteSeksi: { fontSize: 11.5, marginTop: 1 },
-  ruteAngka: { fontSize: 13, fontWeight: '700' },
+  ruteKode: { fontSize: Teks.sm, fontWeight: Berat.tebal },
+  ruteSeksi: { fontSize: Teks.xs, marginTop: 1 },
+  ruteAngka: { fontSize: Teks.sm, fontWeight: Berat.tebal },
 
-  jalurBar: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  isiBar: { height: '100%', borderRadius: 4 },
+  // Bar setinggi 10 (dari 8): satu-satunya indikator progres di layar ini,
+  // dan dilihat sekilas sambil berjalan.
+  jalurBar: { height: 10, borderRadius: Radius.kontrol, overflow: 'hidden' },
+  isiBar: { height: '100%', borderRadius: Radius.kontrol },
 
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 999,
+    gap: Spasi.xs,
+    paddingHorizontal: Spasi.sm,
+    paddingVertical: Spasi.xs,
+    borderRadius: Radius.bundar,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  chipTeks: { fontSize: 10.5, fontWeight: '600' },
+  chipTeks: { fontSize: Teks.xs, fontWeight: Berat.semi },
 });

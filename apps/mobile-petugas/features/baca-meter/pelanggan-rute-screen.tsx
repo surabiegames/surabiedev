@@ -10,17 +10,48 @@
  * Daftar tab aktif juga menjadi URUTAN KUNJUNGAN untuk tombol
  * sebelumnya/berikutnya di layar catat — itu sebabnya urutannya tidak boleh
  * diacak oleh pencarian.
+ *
+ * FLATLIST ADALAH SATU-SATUNYA PENGGULIR DI SINI, dan itu bukan detail gaya.
+ * Sebelumnya FlatList dipasang dengan `scrollEnabled={false}` di dalam
+ * ScrollView milik kerangka halaman. Pola itu mematikan virtualisasi:
+ * VirtualizedList menghitung jendela render dari peristiwa gulir penggulir
+ * yang MEMILIKINYA, dan ketika ia tidak menggulir, tidak ada yang memberitahu
+ * baris mana yang perlu ada. Untuk rute berisi 2.500-an pelanggan (dan itu
+ * ukuran rute yang normal di sini — IWAN memegang 2.552) hasilnya daftar yang
+ * berat sekaligus tidak lengkap. Karena itu kerangka dipanggil dengan
+ * `gulir={false}` dan seluruh chrome layar (progres, pencarian, tab) pindah ke
+ * `ListHeaderComponent`.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
-import { CheckCircle2, ChevronRight, Search } from 'lucide-react-native';
+import { CheckCircle2, ChevronLeft, ChevronRight, Search } from 'lucide-react-native';
 import { labelPeriode, type PelangganRute, type RuteSaya } from '@workspace/mobile-core';
 import { Input } from '@/components/ui/input';
-import { GlassPanel, MasterPalette as P, useTheme } from '@/components';
-import { WorkspaceScaffold } from '@/features/petugas/workspace';
-import { BarProgres } from './daftar-rute-screen';
+import {
+  Radius,
+  Berat,
+  GlassPanel,
+  Kelas,
+  MasterPalette as P,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  TinggiKontrol,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
+import { IsiStrip, LayarGradasi, PADDING_ISI } from '@/features/petugas/layar-gradasi';
 import { periodeCatatSekarang, ruteSaya } from './repository';
+
+/**
+ * Tinggi satu baris, dipakai `getItemLayout`. Karena semua baris berukuran
+ * SAMA (nama & alamat dipotong `numberOfLines={1}`), tingginya bisa dihitung
+ * alih-alih diukur — FlatList jadi bisa melompat ke posisi mana pun tanpa
+ * merender baris di antaranya. Nilainya: padding atas+bawah + dua baris teks.
+ */
+const TINGGI_BARIS = Spasi.md * 2 + 44;
 
 export function PelangganRuteScreen({
   kodeRute,
@@ -32,6 +63,7 @@ export function PelangganRuteScreen({
   onBukaCatat: (nomorLangganan: string) => void;
 }) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [paket, setPaket] = useState<RuteSaya | null>(null);
   const [kunci, setKunci] = useState('');
   const [tabSudah, setTabSudah] = useState(false);
@@ -80,55 +112,91 @@ export function PelangganRuteScreen({
   const seksi = paket?.rutes.find((r) => r.kode === kodeRute)?.seksiCater;
   const periode = paket?.periode ?? periodeCatatSekarang();
 
+  /*
+   * Kepala daftar dioper sebagai ELEMEN (bukan fungsi komponen). Kalau ia
+   * ditulis `ListHeaderComponent={() => <View>…}`, setiap render membuat tipe
+   * komponen BARU sehingga React melepas lalu memasang ulang isinya — dan
+   * field pencarian kehilangan fokus setiap satu huruf diketik. Sebagai
+   * elemen, tipenya tetap View dan rekonsiliasinya biasa saja.
+   */
+  const kepala = (
+    <View style={styles.kepala}>
+
+      <View style={styles.cari}>
+        <Input
+          value={kunci}
+          onChangeText={setKunci}
+          placeholder="Cari nomor langganan / nama / alamat…"
+          autoCapitalize="none"
+          className={`${Kelas.input} pl-11`}
+        />
+        <View style={styles.ikonCari} pointerEvents="none">
+          <Search size={UkuranIkon.sedang} color={colors.mutedForeground} />
+        </View>
+      </View>
+
+      <View style={styles.tabBaris}>
+        <TombolTab
+          label={`Belum dibaca (${target - terbaca})`}
+          aktif={!tabSudah}
+          onPress={() => setTabSudah(false)}
+        />
+        <TombolTab
+          label={`Sudah dibaca (${terbaca})`}
+          aktif={tabSudah}
+          onPress={() => setTabSudah(true)}
+        />
+      </View>
+    </View>
+  );
+
   return (
-    <WorkspaceScaffold
+    <LayarGradasi
       judul={`Rute ${kodeRute}`}
-      subjudul={`${seksi ?? 'Rute pencatatan'} · ${labelPeriode(periode)}`}
-      onBack={onBack}
+      subjudul={seksi ?? 'Rute pencatatan'}
+      kiri={
+        <Pressable
+          onPress={onBack}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Kembali"
+          style={({ pressed }) => pressed && styles.ditekan}
+        >
+          <ChevronLeft size={22} color="#FFFFFF" />
+        </Pressable>
+      }
+      // Progres rute naik ke strip: angka yang paling sering dicek petugas
+      // sepanjang hari, dan di sini ia tidak ikut tergulir bersama daftar.
+      strip={<IsiStrip kiri={`${labelPeriode(periode)} · ${target} sambungan`} kanan={`${terbaca}/${target}`} />}
+      gulir={false}
     >
       {paket == null ? (
         <View style={styles.tengah}>
           <ActivityIndicator color={colors.primary} />
         </View>
       ) : (
-        <>
-          <GlassPanel padding={14}>
-            <View style={styles.progresBaris}>
-              <Text style={[styles.progresLabel, { color: colors.foreground }]}>Progres rute</Text>
-              <Text style={[styles.progresAngka, { color: colors.mutedForeground }]}>
-                {terbaca} dari {target} dibaca
-              </Text>
-            </View>
-            <BarProgres rasio={target === 0 ? 0 : terbaca / target} />
-          </GlassPanel>
-
-          <View style={styles.cari}>
-            <Input
-              value={kunci}
-              onChangeText={setKunci}
-              placeholder="Cari nomor langganan / nama / alamat…"
-              autoCapitalize="none"
-              className="pl-10"
-            />
-            <View style={styles.ikonCari}>
-              <Search size={16} color={colors.mutedForeground} />
-            </View>
-          </View>
-
-          <View style={styles.tabBaris}>
-            <TombolTab
-              label={`Belum dibaca (${target - terbaca})`}
-              aktif={!tabSudah}
-              onPress={() => setTabSudah(false)}
-            />
-            <TombolTab
-              label={`Sudah dibaca (${terbaca})`}
-              aktif={tabSudah}
-              onPress={() => setTabSudah(true)}
-            />
-          </View>
-
-          {tersaring.length === 0 ? (
+        <FlatList
+          data={tersaring}
+          keyExtractor={(p) => p.nomorLangganan}
+          ListHeaderComponent={kepala}
+          contentContainerStyle={{
+            paddingHorizontal: PADDING_ISI,
+            paddingBottom: insets.bottom + Spasi.xl,
+          }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          getItemLayout={(_, index) => ({
+            length: TINGGI_BARIS,
+            offset: TINGGI_BARIS * index,
+            index,
+          })}
+          // Rute penuh = ribuan baris. Jendela render dijaga sempit supaya
+          // menggulir cepat tidak menahan thread JS di HP kelas menengah yang
+          // dipakai petugas.
+          initialNumToRender={12}
+          maxToRenderPerBatch={12}
+          windowSize={7}
+          ListEmptyComponent={
             <Text style={[styles.kosong, { color: colors.mutedForeground }]}>
               {kunci.trim().length > 0
                 ? 'Tidak ada yang cocok dengan pencarian Anda.'
@@ -136,22 +204,16 @@ export function PelangganRuteScreen({
                   ? 'Belum ada pelanggan yang dicatat di rute ini.'
                   : 'Seluruh pelanggan rute ini sudah dibaca. Kerja bagus!'}
             </Text>
-          ) : (
-            <FlatList
-              data={tersaring}
-              scrollEnabled={false}
-              keyExtractor={(p) => p.nomorLangganan}
-              renderItem={({ item }) => (
-                <BarisPelanggan
-                  pelanggan={item}
-                  onPress={() => onBukaCatat(item.nomorLangganan)}
-                />
-              )}
+          }
+          renderItem={({ item }) => (
+            <BarisPelanggan
+              pelanggan={item}
+              onPress={() => onBukaCatat(item.nomorLangganan)}
             />
           )}
-        </>
+        />
       )}
-    </WorkspaceScaffold>
+    </LayarGradasi>
   );
 }
 
@@ -178,6 +240,7 @@ function TombolTab({
       ]}
     >
       <Text
+        numberOfLines={1}
         style={[styles.tabTeks, { color: aktif ? colors.primaryForeground : colors.foreground }]}
       >
         {label}
@@ -195,80 +258,117 @@ function BarisPelanggan({
 }) {
   const { colors } = useTheme();
   return (
-    <GlassPanel padding={0} onPress={onPress} style={styles.baris}>
-      <View style={[styles.urut, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.baris,
+        { backgroundColor: colors.card, borderColor: colors.border },
+        pressed && styles.ditekan,
+      ]}
+    >
+      <View style={[styles.urut, { backgroundColor: colors.permukaan, borderColor: colors.border }]}>
         <Text style={[styles.urutTeks, { color: colors.foreground }]}>
           {pelanggan.urutan ?? '-'}
         </Text>
       </View>
+
       <View style={styles.barisTeks}>
         <Text numberOfLines={1} style={[styles.barisNama, { color: colors.foreground }]}>
           {pelanggan.nama}
         </Text>
-        <Text numberOfLines={1} style={[styles.barisRincian, { color: colors.mutedForeground }]}>
-          {pelanggan.nomorLangganan}
-          {pelanggan.alamat != null ? ` · ${pelanggan.alamat}` : ''}
+        {/*
+          ALAMAT berdiri sendiri di baris kedua, bukan disambung dengan nomor
+          langganan lewat titik tengah. Ini layar untuk MENCARI RUMAH: alamat
+          yang harus terbaca lebih dulu, dan menyambungnya membuat awalannya
+          terdorong keluar oleh nomor 11 digit yang jarang dibaca di jalan.
+        */}
+        <Text numberOfLines={1} style={[styles.barisAlamat, { color: colors.mutedForeground }]}>
+          {pelanggan.alamat ?? pelanggan.nomorLangganan}
         </Text>
       </View>
-      {pelanggan.standLalu != null ? (
-        <Text style={[styles.barisStand, { color: colors.mutedForeground }]}>
-          Lalu {pelanggan.standLalu}
-        </Text>
-      ) : null}
+
       {pelanggan.sudahDicatat ? (
-        <CheckCircle2 size={16} color={P.emerald600} />
+        <CheckCircle2 size={UkuranIkon.besar} color={colors.primary} />
+      ) : pelanggan.standLalu != null ? (
+        <View style={styles.kolomStand}>
+          <Text style={[styles.standLabel, { color: colors.mutedForeground }]}>lalu</Text>
+          <Text style={[styles.standNilai, { color: colors.foreground }]}>
+            {pelanggan.standLalu}
+          </Text>
+        </View>
       ) : (
-        <ChevronRight size={15} color={colors.mutedForeground} />
+        <ChevronRight size={UkuranIkon.sedang} color={colors.mutedForeground} />
       )}
-    </GlassPanel>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  tengah: { paddingVertical: 48, alignItems: 'center' },
+  ditekan: { opacity: 0.7 },
+  tengah: { paddingVertical: Spasi.xxl + Spasi.lg, alignItems: 'center' },
+  kepala: { paddingBottom: Spasi.xs },
+
   progresBaris: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: Spasi.md,
   },
-  progresLabel: { fontSize: 13, fontWeight: '500' },
-  progresAngka: { fontSize: 11.5 },
+  progresLabel: { fontSize: Teks.sm, fontWeight: Berat.medium },
+  progresAngka: { fontSize: Teks.xs },
 
-  cari: { marginTop: 12, justifyContent: 'center' },
-  ikonCari: { position: 'absolute', left: 12 },
+  cari: { marginTop: Spasi.md, justifyContent: 'center' },
+  ikonCari: { position: 'absolute', left: Spasi.md },
 
-  tabBaris: { flexDirection: 'row', gap: 8, marginTop: 10, marginBottom: 10 },
+  tabBaris: {
+    flexDirection: 'row',
+    gap: Spasi.sm,
+    marginTop: Spasi.md,
+    marginBottom: Spasi.md,
+  },
   tab: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 999,
+    height: TinggiKontrol.baku,
+    justifyContent: 'center',
+    borderRadius: Radius.kontrol,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
+    paddingHorizontal: Spasi.sm,
   },
-  tabTeks: { fontSize: 12, fontWeight: '600' },
+  tabTeks: { fontSize: Teks.xs, fontWeight: Berat.semi },
 
-  kosong: { fontSize: 12.5, textAlign: 'center', paddingVertical: 32, lineHeight: 19 },
+  kosong: {
+    fontSize: Teks.sm,
+    textAlign: 'center',
+    paddingVertical: Spasi.xxl,
+    lineHeight: TinggiBaris.sm,
+  },
 
+  // Tinggi dikunci supaya cocok dengan TINGGI_BARIS di getItemLayout.
   baris: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginBottom: 8,
+    gap: Spasi.md,
+    paddingHorizontal: Spasi.md,
+    height: TINGGI_BARIS - Spasi.sm,
+    marginBottom: Spasi.sm,
+    borderRadius: Radius.kartu,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   urut: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: Radius.kecil,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
   },
-  urutTeks: { fontSize: 12, fontWeight: '700' },
-  barisTeks: { flex: 1 },
-  barisNama: { fontSize: 13, fontWeight: '500' },
-  barisRincian: { fontSize: 11, marginTop: 1 },
-  barisStand: { fontSize: 11 },
+  urutTeks: { fontSize: Teks.xs, fontWeight: Berat.tebal },
+  barisTeks: { flex: 1, minWidth: 0 },
+  barisNama: { fontSize: Teks.sm, fontWeight: Berat.medium },
+  barisAlamat: { fontSize: Teks.xs, marginTop: 1 },
+  kolomStand: { alignItems: 'flex-end' },
+  standLabel: { fontSize: Teks.xs },
+  standNilai: { fontSize: Teks.sm, fontWeight: Berat.semi },
 });

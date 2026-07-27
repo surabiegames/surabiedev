@@ -9,8 +9,17 @@
  * seharian bekerja offline, ketika daftar server masih kosong.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { CheckCircle2, Clock, TriangleAlert, WifiOff, XCircle } from 'lucide-react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  CheckCircle2,
+  ChevronLeft,
+  Clock,
+  RotateCw,
+  TriangleAlert,
+  WifiOff,
+  XCircle,
+} from 'lucide-react-native';
 import {
   ApiException,
   dicatatHariIni,
@@ -22,8 +31,18 @@ import {
   type StatusVerifLaporan,
 } from '@workspace/mobile-core';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { GlassPanel, MasterPalette as P, useTheme } from '@/components';
-import { CompactStat, WorkspaceScaffold, type Ikon } from '@/features/petugas/workspace';
+import {
+  Berat,
+  GlassPanel,
+  MasterPalette as P,
+  Spasi,
+  Teks,
+  TinggiBaris,
+  UkuranIkon,
+  useTheme,
+} from '@/components';
+import { IsiStrip, LayarGradasi, PADDING_ISI } from '@/features/petugas/layar-gradasi';
+import { CompactStat, type Ikon } from '@/features/petugas/workspace';
 import { periodeCatatSekarang, riwayatSaya } from './repository';
 
 const IKON_STATUS: Record<StatusVerifLaporan, Ikon> = {
@@ -42,6 +61,7 @@ const LABEL_STATUS: Record<StatusVerifLaporan, string> = {
 
 export function RiwayatScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [daftar, setDaftar] = useState<LaporanSaya[]>([]);
   const [memuat, setMemuat] = useState(true);
   const [galat, setGalat] = useState<string | null>(null);
@@ -74,14 +94,10 @@ export function RiwayatScreen({ onBack }: { onBack: () => void }) {
 
   const periode = periodeCatatSekarang();
 
-  return (
-    <WorkspaceScaffold
-      judul="Riwayat Catat"
-      subjudul={`Hasil kerja Anda · ${labelPeriode(periode)}`}
-      onBack={onBack}
-      onSegarkan={() => void muat()}
-      sedangMuat={memuat}
-    >
+  // Kepala daftar sebagai ELEMEN (bukan fungsi komponen) — lihat catatan yang
+  // sama di pelanggan-rute-screen.tsx.
+  const kepala = (
+    <View style={styles.kepala}>
       <View style={styles.statBaris}>
         <CompactStat label="Dicatat periode ini" nilai={String(angka.total)} ikon={CheckCircle2} />
         <CompactStat label="Hari ini" nilai={String(angka.hariIni)} ikon={Clock} />
@@ -110,23 +126,77 @@ export function RiwayatScreen({ onBack }: { onBack: () => void }) {
         </View>
       ) : null}
 
-      {memuat && daftar.length === 0 ? (
-        <View style={styles.tengah}>
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      ) : daftar.length === 0 ? (
-        <Text style={[styles.kosong, { color: colors.mutedForeground }]}>
-          Belum ada hasil catat pada periode ini. Mulai dari menu Baca Meter.
-        </Text>
-      ) : (
-        <>
-          <Text style={[styles.judulDaftar, { color: colors.foreground }]}>Daftar pencatatan</Text>
-          {daftar.map((l, i) => (
-            <BarisRiwayat key={`${l.nomorLangganan}-${l.id ?? i}`} laporan={l} />
-          ))}
-        </>
-      )}
-    </WorkspaceScaffold>
+      {daftar.length > 0 ? (
+        <Text style={[styles.judulDaftar, { color: colors.foreground }]}>Daftar pencatatan</Text>
+      ) : null}
+    </View>
+  );
+
+  return (
+    <LayarGradasi
+      judul="Riwayat Catat"
+      subjudul={`Hasil kerja Anda · ${labelPeriode(periode)}`}
+      kiri={
+        onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={({ pressed }) => pressed && styles.ditekan}
+          >
+            <ChevronLeft size={22} color="#FFFFFF" />
+          </Pressable>
+        ) : null
+      }
+      kanan={
+        <Pressable
+          onPress={() => void muat()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Segarkan"
+          style={({ pressed }) => pressed && styles.ditekan}
+        >
+          <RotateCw size={UkuranIkon.sedang} color="#FFFFFF" />
+        </Pressable>
+      }
+      strip={
+        <IsiStrip
+          kiri={`${angka.total} dicatat periode ini`}
+          kanan={angka.hariIni > 0 ? `${angka.hariIni} hari ini` : null}
+        />
+      }
+      gulir={false}
+    >
+      <FlatList
+        data={daftar}
+        keyExtractor={(l, i) => `${l.nomorLangganan}-${l.id ?? i}`}
+        ListHeaderComponent={kepala}
+        contentContainerStyle={{
+          paddingHorizontal: PADDING_ISI,
+          paddingBottom: insets.bottom + Spasi.xl,
+        }}
+        // Sebulan kerja satu petugas = ribuan baris; jendela render dijaga
+        // sempit seperti di daftar pelanggan rute.
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        refreshing={memuat}
+        onRefresh={() => void muat()}
+        ListEmptyComponent={
+          memuat ? (
+            <View style={styles.tengah}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          ) : (
+            <Text style={[styles.kosong, { color: colors.mutedForeground }]}>
+              Belum ada hasil catat pada periode ini. Mulai dari menu Baca Meter.
+            </Text>
+          )
+        }
+        renderItem={({ item }) => <BarisRiwayat laporan={item} />}
+      />
+    </LayarGradasi>
   );
 }
 
@@ -147,9 +217,9 @@ function BarisRiwayat({ laporan }: { laporan: LaporanSaya }) {
       : null);
 
   return (
-    <GlassPanel padding={14} style={styles.baris}>
+    <GlassPanel padding={Spasi.lg} style={styles.baris}>
       <View style={styles.barisAtas}>
-        <Ikon size={16} color={warna} />
+        <Ikon size={UkuranIkon.sedang} color={warna} />
         <Text style={[styles.barisNomor, { color: colors.foreground }]}>
           {laporan.nomorLangganan}
         </Text>
@@ -192,18 +262,30 @@ function BarisRiwayat({ laporan }: { laporan: LaporanSaya }) {
 }
 
 const styles = StyleSheet.create({
-  statBaris: { flexDirection: 'row', gap: 10 },
-  jarakKecil: { marginTop: 10 },
-  jarak: { marginTop: 14 },
-  tengah: { paddingVertical: 48, alignItems: 'center' },
-  kosong: { fontSize: 12.5, textAlign: 'center', paddingVertical: 36, lineHeight: 19 },
-  judulDaftar: { fontSize: 13, fontWeight: '700', marginTop: 20, marginBottom: 8 },
-  baris: { marginBottom: 8 },
-  barisAtas: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  barisNomor: { flex: 1, fontSize: 13, fontWeight: '600' },
-  barisStatus: { fontSize: 11, fontWeight: '600' },
-  barisNama: { fontSize: 12.5, marginTop: 4 },
-  barisRincian: { fontSize: 11.5, marginTop: 4 },
-  barisWaktu: { fontSize: 11, marginTop: 3 },
-  barisPesan: { fontSize: 11.5, marginTop: 6, lineHeight: 17 },
+  ditekan: { opacity: 0.7 },
+  kepala: { paddingBottom: Spasi.xs },
+  statBaris: { flexDirection: 'row', gap: Spasi.md },
+  jarakKecil: { marginTop: Spasi.md },
+  jarak: { marginTop: Spasi.lg },
+  tengah: { paddingVertical: Spasi.xxl + Spasi.lg, alignItems: 'center' },
+  kosong: {
+    fontSize: Teks.sm,
+    textAlign: 'center',
+    paddingVertical: Spasi.xxl,
+    lineHeight: TinggiBaris.sm,
+  },
+  judulDaftar: {
+    fontSize: Teks.base,
+    fontWeight: Berat.tebal,
+    marginTop: Spasi.xl,
+    marginBottom: Spasi.md,
+  },
+  baris: { marginBottom: Spasi.md },
+  barisAtas: { flexDirection: 'row', alignItems: 'center', gap: Spasi.sm },
+  barisNomor: { flex: 1, fontSize: Teks.sm, fontWeight: Berat.semi },
+  barisStatus: { fontSize: Teks.xs, fontWeight: Berat.semi },
+  barisNama: { fontSize: Teks.sm, marginTop: Spasi.xs },
+  barisRincian: { fontSize: Teks.xs, marginTop: Spasi.xs },
+  barisWaktu: { fontSize: Teks.xs, marginTop: Spasi.xs },
+  barisPesan: { fontSize: Teks.xs, marginTop: Spasi.sm, lineHeight: TinggiBaris.xs },
 });
