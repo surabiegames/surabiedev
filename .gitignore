@@ -46,3 +46,8 @@ next-env.d.ts
 
 # prisma — client di-generate dari skema, jangan di-commit
 packages/db/generated/
+
+# Satu laporan seed 274 MB (135.198 entri `issues` dari sekali jalan) —
+# GitHub MENOLAK berkas di atas 100 MB, jadi push gagal total bila ikut.
+# Artefak hasil generate; bisa dibuat ulang dengan menjalankan seed.
+packages/db/prisma/seed/reports/seed-2026-07-26T02-20-57-068Z.json

@@ -35,10 +35,14 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog";
 import { Spinner } from "@workspace/ui/components/spinner";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@workspace/ui/components/resizable";
 import { formatPeriode } from "@/features/public/lib/format";
 import { ambilSatu, ambilList, kirimJson, ApiError } from "../../lib/api-client";
 import { LABEL_KONDISI_CATAT } from "../../lib/label";
-import { DataGrid } from "../data-grid";
 import {
   fmtLabel,
   fmtTanggal,
@@ -48,7 +52,8 @@ import {
 } from "../grids/sel";
 import type { StatsVerifikasi, RingLaporanHarian } from "./tipe";
 import { tahapLaporanHarian, ringVerif } from "./tipe";
-import { RingkasanVerifikasi, PilihPeriode } from "./ringkasan-verifikasi";
+import { RingkasanVerifikasi } from "./ringkasan-verifikasi";
+import { PanelTabel } from "./panel-tabel";
 import { PanelLapangan, type AksiLapangan } from "./panel-lapangan";
 import { MenuKonteks, type AksiKonteks } from "./menu-konteks";
 
@@ -199,212 +204,6 @@ export function VerifikasiLapangan({ role }: { role: string }) {
   // catat|ST akhir revisi|m3|m3 Lalu|%|Koreksi|SISA|St rata2|RUTE|W|ZONA|
   // Cater|Catat|Nm_al|St Angkat. SISA / St rata2 / St Angkat belum punya
   // sumber data di sistem — tampil "—" dulu, kolomnya sudah disiapkan.
-  const kolom = React.useMemo<ColDef[]>(
-    () => [
-      {
-        headerName: "V1",
-        colId: "v1",
-        minWidth: 48,
-        maxWidth: 54,
-        resizable: false,
-        valueGetter: (p) => (p.data ? ringVerif(p.data as BarisLaporan).v1 : null),
-        cellRenderer: selRing(WARNA_RING.v1),
-      },
-      {
-        headerName: "V2",
-        colId: "v2",
-        minWidth: 48,
-        maxWidth: 54,
-        resizable: false,
-        valueGetter: (p) => (p.data ? ringVerif(p.data as BarisLaporan).v2 : null),
-        cellRenderer: selRing(WARNA_RING.v2),
-      },
-      {
-        headerName: "V3",
-        colId: "v3",
-        minWidth: 48,
-        maxWidth: 54,
-        resizable: false,
-        valueGetter: (p) => (p.data ? ringVerif(p.data as BarisLaporan).v3 : null),
-        cellRenderer: selRing(WARNA_RING.v3),
-      },
-      {
-        headerName: "No",
-        colId: "no",
-        minWidth: 60,
-        maxWidth: 70,
-        cellClass: KELAS_ANGKA,
-        cellRenderer: (p: ICellRendererParams) =>
-          p.node.rowIndex != null ? p.node.rowIndex + 1 : "",
-      },
-      {
-        field: "nomorLangganan",
-        headerName: "No Pel",
-        minWidth: 130,
-        maxWidth: 145,
-        cellClass: KELAS_MONO,
-        sortable: true,
-        // Tanpa ikon anomali (permintaan pengguna) — sinyal anomali cukup
-        // dari pewarnaan kolom % dan badge hitungan di atas tabel.
-      },
-      {
-        headerName: "Nama",
-        minWidth: 150,
-        flex: 2,
-        valueGetter: (p) =>
-          p.data?.pelanggan?.nama ?? p.data?.namaPelanggan ?? "—",
-      },
-      {
-        headerName: "Alamat",
-        minWidth: 160,
-        flex: 2,
-        valueGetter: (p) =>
-          p.data?.pelanggan?.alamat ?? p.data?.alamatPelanggan ?? "—",
-      },
-      {
-        headerName: "Tarif",
-        minWidth: 80,
-        valueGetter: (p) => p.data?.pelanggan?.tarifGolongan?.kodeAsli ?? "—",
-      },
-      {
-        field: "standAwal",
-        headerName: "ST awal",
-        minWidth: 90,
-        sortable: true,
-        cellClass: KELAS_ANGKA,
-        valueFormatter: fmtAngka,
-      },
-      {
-        headerName: "ST akhir resmi",
-        colId: "standResmi",
-        minWidth: 105,
-        cellClass: KELAS_ANGKA,
-        valueGetter: (p) => p.data?.pembacaan?.standAkhir ?? null,
-        valueFormatter: fmtAngka,
-      },
-      {
-        field: "standAkhir",
-        headerName: "ST akhir catat",
-        minWidth: 105,
-        sortable: true,
-        cellClass: KELAS_ANGKA,
-        valueFormatter: fmtAngka,
-      },
-      {
-        field: "standAkhirRevisi",
-        headerName: "ST akhir revisi",
-        minWidth: 105,
-        cellClass: KELAS_ANGKA,
-        valueFormatter: fmtAngka,
-      },
-      {
-        field: "pemakaian",
-        headerName: "m3",
-        minWidth: 85,
-        sortable: true,
-        cellClass: KELAS_ANGKA,
-        valueFormatter: fmtAngka,
-      },
-      {
-        field: "pemakaianLalu",
-        headerName: "m3 Lalu",
-        minWidth: 90,
-        sortable: true,
-        cellClass: KELAS_ANGKA,
-        valueFormatter: fmtAngka,
-      },
-      {
-        field: "persentase",
-        headerName: "%",
-        minWidth: 85,
-        sortable: true,
-        cellClass: KELAS_ANGKA,
-        valueFormatter: (p: ValueFormatterParams) =>
-          typeof p.value === "number"
-            ? `${p.value > 0 ? "+" : ""}${p.value}%`
-            : "—",
-        cellRenderer: (p: ICellRendererParams) => {
-          if (typeof p.value !== "number")
-            return <span className="text-muted-foreground">—</span>;
-          const kelas =
-            Math.abs(p.value) > ambang
-              ? "text-red-600 dark:text-red-400 font-semibold"
-              : p.value < 0
-                ? "text-emerald-600 dark:text-emerald-400"
-                : "text-foreground";
-          return (
-            <span
-              className={kelas}
-            >{`${p.value > 0 ? "+" : ""}${p.value}%`}</span>
-          );
-        },
-      },
-      {
-        headerName: "Koreksi",
-        colId: "koreksi",
-        minWidth: 90,
-        cellClass: KELAS_ANGKA,
-        // Selisih kubikasi akibat revisi V1 (revisi − catat); kosong bila
-        // tidak ada revisi.
-        valueGetter: (p) => {
-          const d = p.data as BarisLaporan | undefined;
-          return d?.standAkhirRevisi != null && d.standAkhir != null
-            ? d.standAkhirRevisi - d.standAkhir
-            : null;
-        },
-        valueFormatter: (p: ValueFormatterParams) =>
-          typeof p.value === "number"
-            ? `${p.value > 0 ? "+" : ""}${p.value.toLocaleString("id-ID")}`
-            : "—",
-      },
-      { headerName: "SISA", colId: "sisa", minWidth: 80, cellRenderer: SEL_KOSONG },
-      { headerName: "St rata2", colId: "stRata2", minWidth: 90, cellRenderer: SEL_KOSONG },
-      {
-        headerName: "RUTE",
-        minWidth: 85,
-        valueGetter: (p) => p.data?.pelanggan?.rute?.kode ?? "—",
-      },
-      {
-        headerName: "W",
-        minWidth: 75,
-        valueGetter: (p) => p.data?.pelanggan?.zona?.wilayahSeksi?.kode ?? "—",
-      },
-      {
-        headerName: "ZONA",
-        minWidth: 85,
-        valueGetter: (p) => p.data?.pelanggan?.zona?.kode ?? "—",
-      },
-      {
-        headerName: "Cater",
-        minWidth: 110,
-        valueGetter: (p) => p.data?.pencatat?.namaLapangan ?? "—",
-      },
-      {
-        field: "tanggalCatat",
-        headerName: "Catat",
-        minWidth: 110,
-        sortable: true,
-        valueFormatter: fmtTanggal,
-      },
-      {
-        // Keterangan/kondisi catat (DK, BMK/BMB, dll.) — penting untuk
-        // menilai stand yang aneh; bisa dikoreksi di modal V1.
-        field: "kondisi",
-        headerName: "Ket. catat",
-        minWidth: 115,
-        sortable: true,
-        valueFormatter: fmtLabel(LABEL_KONDISI_CATAT),
-      },
-      {
-        field: "nomorMeter",
-        headerName: "Nm_al",
-        minWidth: 110,
-        cellClass: KELAS_MONO,
-      },
-      { headerName: "St Angkat", colId: "stAngkat", minWidth: 95, cellRenderer: SEL_KOSONG },
-    ],
-    [ambang],
-  );
 
   async function jalankanKonfirmasi() {
     if (!konfirmasi) return;
@@ -429,7 +228,8 @@ export function VerifikasiLapangan({ role }: { role: string }) {
 
   /// Item menu klik kanan sesuai tahap baris + role pengguna. Item yang
   /// belum waktunya (mis. V2 sebelum V1) disembunyikan; item yang butuh
-  /// role lebih tinggi tampil disabled dengan keterangan.
+  /// role lebih tinggi tampil disabled — wewenangnya sudah dijaga role
+  /// akses, jadi tidak perlu dijelaskan ulang di tiap item.
   function aksiMenu(baris: BarisLaporan): AksiKonteks[] {
     const id = baris.id;
     if (!id) return [];
@@ -437,26 +237,18 @@ export function VerifikasiLapangan({ role }: { role: string }) {
     const nama = baris.pelanggan?.nama ?? baris.namaPelanggan ?? baris.nomorLangganan ?? "";
     const daftar: AksiKonteks[] = [
       {
-        label: "Lihat detail",
+        label: "Lihat",
         icon: Eye,
         onPilih: () => setMenu(null),
-        keterangan: "Detail sudah tampil di panel kiri",
       },
     ];
 
     if (tahap === "MENUNGGU_V1" || tahap === "DITOLAK") {
       daftar.push({
-        label: "Verifikasi V1 — periksa & koreksi…",
+        label: "Verifikasi V1",
         icon: ShieldCheck,
         pemisah: true,
         disabled: !bisaV1 || !baris.pelanggan,
-        keterangan: !baris.pelanggan
-          ? "Pelanggan belum ter-import — belum bisa diverifikasi"
-          : !bisaV1
-            ? "Butuh Supervisor ke atas"
-            : tahap === "DITOLAK"
-              ? "Laporan ditolak — verifikasi ulang bila ternyata benar"
-              : undefined,
         onPilih: () => {
           setMenu(null);
           setAksi("v1");
@@ -465,51 +257,34 @@ export function VerifikasiLapangan({ role }: { role: string }) {
     }
     if (tahap === "MENUNGGU_V2") {
       daftar.push({
-        label: "Validasi V2",
+        label: "Verifikasi V2",
         icon: CheckCheck,
         pemisah: true,
         disabled: !bisaV2,
-        keterangan: bisaV2 ? undefined : "Butuh Manager ke atas",
         onPilih: () => {
           setMenu(null);
-          setGalatAksi(null);
-          setKonfirmasi({
-            endpoint: "verif2",
-            id,
-            judul: "Validasi V2?",
-            deskripsi: `Menandai laporan ${nama} lolos pemeriksaan tingkat Manager. Setelah ini laporan menunggu approve final V3.`,
-          });
+          setAksi("v2");
         },
       });
     }
     if (tahap === "MENUNGGU_V3") {
       daftar.push({
-        label: "Approve final V3 — jadikan resmi",
+        label: "Verifikasi V3",
         icon: FileCheck2,
         pemisah: true,
         disabled: !bisaV3,
-        keterangan: bisaV3 ? undefined : "Butuh Senior Manager ke atas",
         onPilih: () => {
           setMenu(null);
-          setGalatAksi(null);
-          setKonfirmasi({
-            endpoint: "verif3",
-            id,
-            judul: "Approve final V3?",
-            deskripsi: `Persetujuan akhir untuk ${nama}: laporan menjadi PembacaanMeter resmi dan siap diproses ke penagihan. Angka yang dipakai: revisi V1 bila ada, selain itu angka catat petugas.`,
-          });
+          setAksi("v3");
         },
       });
     }
 
     if (tahap !== "RESMI" && tahap !== "DITOLAK") {
       daftar.push({
-        label: "Cek ulang — kembalikan ke petugas…",
+        label: "Cek ulang",
         icon: RotateCcw,
         disabled: !bisaV1,
-        keterangan: bisaV1
-          ? "Semua ring yang sudah terisi ikut direset"
-          : "Butuh Supervisor ke atas",
         onPilih: () => {
           setMenu(null);
           setAksi("cekulang");
@@ -520,14 +295,11 @@ export function VerifikasiLapangan({ role }: { role: string }) {
     // Unverifikasi: membatalkan SATU tahap terakhir.
     if (tahap === "RESMI") {
       daftar.push({
-        label: "Batalkan approve final (V3)",
+        label: "Batalkan V3",
         icon: Undo2,
         pemisah: true,
         destruktif: true,
         disabled: !bisaV3,
-        keterangan: bisaV3
-          ? "Pembacaan resmi dihapus; ditolak bila sudah dipakai tagihan"
-          : "Butuh Senior Manager ke atas",
         onPilih: () => {
           setMenu(null);
           setGalatAksi(null);
@@ -546,7 +318,6 @@ export function VerifikasiLapangan({ role }: { role: string }) {
         icon: Undo2,
         destruktif: true,
         disabled: !bisaV2,
-        keterangan: bisaV2 ? undefined : "Butuh Manager ke atas",
         onPilih: () => {
           setMenu(null);
           setGalatAksi(null);
@@ -565,9 +336,6 @@ export function VerifikasiLapangan({ role }: { role: string }) {
         icon: Undo2,
         destruktif: true,
         disabled: !bisaV1,
-        keterangan: bisaV1
-          ? "Revisi stand & pilihan meter ikut dihapus"
-          : "Butuh Supervisor ke atas",
         onPilih: () => {
           setMenu(null);
           setGalatAksi(null);
@@ -585,7 +353,6 @@ export function VerifikasiLapangan({ role }: { role: string }) {
         label: "Kembalikan ke antrean (batalkan tolak)",
         icon: Undo2,
         disabled: !bisaV1,
-        keterangan: bisaV1 ? undefined : "Butuh Supervisor ke atas",
         onPilih: () => {
           setMenu(null);
           setGalatAksi(null);
@@ -603,104 +370,90 @@ export function VerifikasiLapangan({ role }: { role: string }) {
   }
 
   return (
-    // h-full: SEKARANG aman dipakai — layout.tsx sudah mengunci rantai
-    // tinggi di atas (SidebarInset h-dvh overflow-hidden → div konten
-    // min-h-0 flex-1). items-stretch: kedua kolom otomatis sama-sama
-    // penuh mengisi tinggi yang tersedia (bukan lagi angka calc tebakan).
-    <div className="flex h-full min-h-0 flex-col items-stretch gap-4 lg:flex-row">
-      {/* Panel kiri = kolom mandiri sejak baris paling atas (sejajar
-          card ringkasan), tinggi penuh, scroll sendiri via overflow-y-auto
-          — tidak lagi butuh sticky/calc, cukup h-full karena parent-nya
-          sudah pasti tingginya. */}
-      <aside className="scrollbar-tipis flex h-full min-h-0 w-full shrink-0 flex-col overflow-y-auto border border-border/70 bg-card lg:w-80">
-        <div className="sticky top-0 z-10 shrink-0 border-b border-border/70 bg-card px-4 py-2.5">
-          <h2 className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
-            Detail Laporan
-          </h2>
-        </div>
-        {/* key: ganti baris = remount panel, seluruh state form mulai
-            bersih tanpa reset sinkron di effect. */}
-        <PanelLapangan
-          key={idTerpilih ?? "kosong"}
-          id={idTerpilih}
-          aksi={aksi}
-          ambangAnomali={ambang}
-          onTutupAksi={() => setAksi(null)}
-          onSelesai={() => setRefreshKey((k) => k + 1)}
-        />
-      </aside>
+    <>
+    {/* TATA LETAK: tabel KIRI, detail KANAN.
+    //
+        Sisi kiri layar sudah milik sidebar aplikasi; menaruh panel detail di
+        sana membuat dua talang vertikal bertumpuk dan memaksa mata melewati
+        dua kolom sempit sebelum sampai ke isi. Tabel adalah objek utama
+        halaman ini dan ia yang butuh lebar. Urutan bacanya pun jadi wajar:
+        pilih baris (kiri) lalu lihat rinciannya (kanan), bukan melompat
+        mundur 22 ribu kali.
 
-      {/* Kolom kanan: header periode + 4 card (shrink-0, tinggi natural)
-          + tabel (flex-1 min-h-0, mengisi SISA tinggi kolom & scroll
-          sendiri) — bukan lagi 3 blok lepas dengan tinggi ditebak. */}
-      <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-4">
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">
-            {periode ? `Periode ${formatPeriode(periode)}` : "Semua periode"}
+        TEPI MENYATU: tanpa gap & tanpa border luar. Panel tabel menempel ke
+        sidebar aplikasi dan ke navbar atas; satu-satunya garis di antara
+        kedua panel adalah pemisah yang bisa ditarik. Border ganda berjarak
+        1px jadi tidak mungkin terjadi. */}
+    <ResizablePanelGroup orientation="horizontal" className="h-full min-h-0 items-stretch">
+      <ResizablePanel defaultSize="72" minSize="40" className="flex min-w-0 flex-col">
+        <div className="flex h-full min-h-0 min-w-0 flex-col gap-2 p-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <p className="text-muted-foreground text-xs">
+              {periode ? `Periode ${formatPeriode(periode)}` : "Semua periode"}
+            </p>
             {stats?.anomali ? (
-              <span className="ml-2 border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+              <span className="border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400 border">
                 {stats.anomali.toLocaleString("id-ID")} anomali &gt; ±{ambang}%
               </span>
             ) : null}
-          </p>
-          <PilihPeriode
-            periodes={stats?.periodes ?? []}
-            nilai={periode ?? null}
-            onGanti={setPeriode}
-          />
-        </div>
+            {galatStats && <p className="text-destructive text-xs">{galatStats}</p>}
+          </div>
 
-        {galatStats && (
-          <p className="shrink-0 text-xs text-destructive">{galatStats}</p>
-        )}
-        <div className="shrink-0">
-          <RingkasanVerifikasi stats={stats} />
-        </div>
+          <div className="shrink-0">
+            <RingkasanVerifikasi stats={stats} periode={periode ?? null} />
+          </div>
 
-        <div className="min-h-0 min-w-0 flex-1">
-          <DataGrid
-            judul="Laporan Pencatatan Lapangan"
-            endpoint="/laporan-harian"
-            columnDefs={kolom}
-            searchParam="q"
-            searchPlaceholder="Cari no. langganan / nama…"
-            filters={[
-              {
-                param: "statusVerif",
-                label: "Status",
-                opsi: [
-                  { value: "MENUNGGU", label: "Menunggu" },
-                  { value: "DIVERIFIKASI", label: "Resmi" },
-                  { value: "DITOLAK", label: "Cek ulang" },
-                ],
-              },
-              {
-                param: "pencatatId",
-                label: "Pencatat",
-                opsi: pencatats.map((p) => ({
-                  value: p.id,
-                  label: p.namaLapangan,
-                })),
-              },
-            ]}
-            extraParams={periode ? { periode: String(periode) } : undefined}
-            onRowClicked={(d) =>
-              setIdTerpilih((d as { id?: string }).id ?? null)
-            }
-            onRowContextMenu={(d, posisi) => {
-              const baris = d as BarisLaporan;
-              // Klik kanan sekaligus memilih baris — panel kiri dan menu
-              // selalu membicarakan baris yang sama.
-              setIdTerpilih(baris.id ?? null);
-              setAksi(null);
-              setMenu({ posisi, baris });
-            }}
-            idTerpilih={idTerpilih}
-            refreshKey={refreshKey}
-            tinggiClassName="scrollbar-tipis flex-1 min-h-96"
-          />
+          <div className="min-h-0 min-w-0 flex-1">
+            <PanelTabel
+              periodes={stats?.periodes ?? []}
+              pencatats={pencatats}
+              ambangAnomali={ambang}
+              bolehRing={(r) => (r === 1 ? bisaV1 : r === 2 ? bisaV2 : bisaV3)}
+              idTerpilih={idTerpilih}
+              onPeriodeBerubah={setPeriode}
+              onKlikBaris={(row) => setIdTerpilih(row.id)}
+              onKlikKanan={(row, posisi) => {
+                setIdTerpilih(row.id)
+                setAksi(null)
+                setMenu({ posisi, baris: row as BarisLaporan })
+              }}
+              refreshKey={refreshKey}
+              onBerubah={() => setRefreshKey((k) => k + 1)}
+              sisaKerja={stats ? stats.total - stats.diverifikasi : null}
+            />
+          </div>
         </div>
-      </div>
+      </ResizablePanel>
+
+      <ResizableHandle withHandle />
+
+      <ResizablePanel defaultSize="28" minSize="18" collapsible className="flex min-w-0 flex-col">
+        {/* Judul DI LUAR wadah bergulir. Versi sebelumnya menaruhnya sebagai
+            `sticky top-0` di dalam elemen ber-`overflow-y-auto`, dan tepi
+            atasnya terpotong oleh wadahnya sendiri — itulah "border atas
+            tidak terlihat". Header tetap, isi yang bergulir: tidak ada lagi
+            yang bisa memotongnya. */}
+        <aside className="bg-card flex h-full min-h-0 flex-col">
+          <div className="border-border/70 shrink-0 border-b px-4 py-2.5">
+            <h2 className="text-muted-foreground text-[10px] font-semibold tracking-widest uppercase">
+              Detail Laporan
+            </h2>
+          </div>
+          <div className="scrollbar-tipis min-h-0 flex-1 overflow-y-auto">
+            {/* key: ganti baris = remount panel, seluruh state form mulai
+                bersih tanpa reset sinkron di effect. */}
+            <PanelLapangan
+              key={idTerpilih ?? "kosong"}
+              id={idTerpilih}
+              aksi={aksi}
+              ambangAnomali={ambang}
+              onTutupAksi={() => setAksi(null)}
+              onSelesai={() => setRefreshKey((k) => k + 1)}
+            />
+          </div>
+        </aside>
+      </ResizablePanel>
+    </ResizablePanelGroup>
 
       {menu && (
         <MenuKonteks
@@ -744,6 +497,6 @@ export function VerifikasiLapangan({ role }: { role: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }

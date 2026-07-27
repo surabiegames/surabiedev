@@ -225,6 +225,16 @@ model LaporanHarianPetugas {
   pembacaanId      String?           @unique
   createdAt        DateTime          @default(now())
   blokTarifVerif   Int?
+  /// Pemakaian yang DITAGIHKAN, ditetapkan verifikator di V1. NULL = pakai
+  /// usulan otomatis dari aturan (minimum 5 m3 per Perdir, taksiran bulan
+  /// lalu untuk meter tak terbaca) — lihat packages/domain/tagihan.ts.
+  ///
+  /// Ada karena aturannya memang keputusan verifikator, bukan rumus buta:
+  /// di data 202605 sekitar 1,4% baris memakai angka yang tidak mengikuti
+  /// pola mana pun. Tanpa kolom ini, verifikator tidak punya tempat untuk
+  /// menuliskan keputusannya dan terpaksa memalsukan stand meter supaya
+  /// angka tagihnya keluar benar — merusak jejak pembacaan yang asli.
+  pemakaianTagihVerif Int?
   /// Meter tujuan + blok tarif dipilih saat V1 (yang paling dekat ke
   /// lapangan), lalu dipakai V3 untuk membuat PembacaanMeter resmi.
   meterVerifId     String?
@@ -600,4 +610,99 @@ enum StatusPotensi {
   DITOLAK
   MENUNGGU_SURVEI
   VALIDASI
+}
+
+// ============================================================================
+// DAFTAR CATAT PER PERIODE (DPM) — jembatan antar-periode yang selama ini
+// hilang dari skema.
+// ============================================================================
+
+/// Daftar Pelanggan yang WAJIB DICATAT pada satu periode — dibekukan di
+/// awal periode, bukan dihitung ulang saat dibaca.
+///
+/// KENAPA MODEL INI HARUS ADA:
+/// tanpa dia, tidak ada satu pun tabel yang bisa menjawab "siapa saja yang
+/// harus dicatat bulan ini". Angkanya selama ini benar tapi cuma tersirat,
+/// dan itu menimbulkan dua masalah yang terukur:
+///
+/// 1. TARGET PETUGAS TIDAK BISA DIHITUNG. Beban Mei per petugas berbeda
+///    tergantung sumber: AGUS punya 2.526 baris di daftar kerja lapangan
+///    tapi hanya 2.520 tagihan terbit — selisihnya adalah sambungan yang
+///    dicabut di tengah periode & PBPK yang belum layak tagih. Kalau target
+///    diambil dari jumlah tagihan, petugas dirugikan (mendatangi rumah yang
+///    ternyata sudah dicabut tetap pekerjaan). Kalau diambil dari daftar
+///    kerja mentah, cabutan terhitung selamanya.
+/// 2. TIDAK ADA BUKTI JUMLAH SL. "22.534 SL harus dicatat Juni" hanya bisa
+///    dibuktikan dengan menghitung ulang CSV secara manual.
+///
+/// ATURAN PEMBENTUKAN (terverifikasi terhadap data 202605):
+///   DPM(N+1) = DPM(N) − Pemutusan(N) + PBPK(N)
+/// Contoh nyata: 22.523 (ditagih Mei) + 11 (PBPK Mei) = 22.534 (daftar
+/// catat Juni). Cabutan Mei (19) tidak dikurangkan lagi karena memang sudah
+/// tidak ada di closing Mei; dihitung dari sisi daftar kerja petugas
+/// hasilnya sama: 22.553 − 19 = 22.534.
+///
+/// DIBEKUKAN, TIDAK DIHITUNG SAAT DIBACA — alasannya sama seperti target
+/// SLA di Pengaduan: kalau daftarnya dihitung ulang tiap kali dibuka, mutasi
+/// yang terjadi SESUDAH periode berjalan akan diam-diam menulis ulang
+/// sejarah, dan capaian petugas bulan lalu ikut berubah. Daftar bulan lalu
+/// harus tetap menjadi daftar yang benar-benar dia terima saat itu.
+model DaftarCatat {
+  id          String            @id @default(cuid())
+  /// thbl, mis. 202606 — bentuk Int, konsisten dengan LaporanHarianPetugas/
+  /// MutasiPelanggan/Pemutusan (lihat packages/domain/periode.ts).
+  periode     Int
+  pelangganId String
+  /// Rute & pencatat SAAT DAFTAR DIBEKUKAN — di-snapshot, bukan diambil
+  /// lewat relasi Pelanggan saat dibaca. Pelanggan bisa pindah rute dan
+  /// pencatat bisa berganti penugasan; capaian periode lalu tidak boleh
+  /// ikut berpindah bersamanya.
+  ruteId      String?
+  pencatatId  String?
+  /// Urutan kunjungan dalam rute saat daftar dibekukan.
+  urutan      Int               @default(0)
+  sumber      SumberDaftarCatat
+  status      StatusDaftarCatat @default(BELUM_DICATAT)
+  /// Diisi saat status berubah dari BELUM_DICATAT.
+  selesaiAt   DateTime?
+  catatan     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  pelanggan   Pelanggan         @relation(fields: [pelangganId], references: [id], onDelete: Cascade)
+  rute        Rute?             @relation(fields: [ruteId], references: [id])
+  pencatat    Pencatat?         @relation(fields: [pencatatId], references: [id])
+
+  /// Satu pelanggan tepat satu baris per periode — inilah yang membuat
+  /// "jumlah SL yang harus dicatat" jadi angka yang bisa di-COUNT, bukan
+  /// ditafsirkan.
+  @@unique([periode, pelangganId])
+  @@index([periode, pencatatId])
+  @@index([periode, ruteId])
+  @@index([periode, status])
+  @@map("daftar_catat")
+}
+
+/// Dari mana baris daftar catat ini berasal — dibutuhkan untuk membuktikan
+/// aritmetika DPM(N+1) = DPM(N) − Pemutusan(N) + PBPK(N) tanpa menghitung
+/// ulang CSV.
+enum SumberDaftarCatat {
+  /// Sudah ada di daftar periode sebelumnya dan masih aktif.
+  CARRY_OVER
+  /// Sambungan baru / ubah kontrak (PBPK) periode sebelumnya — periode ini
+  /// pertama kalinya ia masuk daftar.
+  PBPK
+  /// Ditambahkan manual oleh admin (mis. sambungan yang terlewat).
+  MANUAL
+}
+
+enum StatusDaftarCatat {
+  BELUM_DICATAT
+  DICATAT
+  /// Sudah dikunjungi tapi gagal dicatat (meter terhalang, rumah terkunci,
+  /// ada anjing, dst). TETAP dihitung sebagai pekerjaan petugas — bedanya
+  /// dengan BELUM_DICATAT justru itu.
+  TIDAK_TERCATAT
+  /// Dicabut di tengah periode berjalan. Tetap disimpan (tidak dihapus)
+  /// supaya beban kerja periode ini tidak berubah surut.
+  DICABUT
 }

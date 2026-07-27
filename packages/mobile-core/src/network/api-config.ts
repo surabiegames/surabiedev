@@ -20,6 +20,9 @@
 /** URL produksi resmi (backend ter-deploy di Vercel). */
 const URL_PRODUKSI = 'https://perumda.vercel.app';
 
+/** URL lokal default untuk development */
+const URL_DEV_LOCAL = 'http://localhost:3001';
+
 /** Penimpa opsional saat build (dev/staging). Kosong = pakai produksi. */
 const OVERRIDE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
@@ -27,9 +30,17 @@ const OVERRIDE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 const DEMO = process.env.EXPO_PUBLIC_DEMO === 'true';
 
 export const ApiConfig = {
-  /** Base URL efektif: penimpa bila diberikan, selain itu produksi. */
+  /** 
+   * Base URL efektif:
+   * 1. Jika EXPO_PUBLIC_API_BASE_URL diisi di .env -> Pakai OVERRIDE.
+   * 2. Jika mode Development (__DEV__) -> Fallback ke localhost:3001.
+   * 3. Jika mode Production -> Fallback ke URL_PRODUKSI.
+   */
   get baseUrl(): string {
-    return OVERRIDE.length > 0 ? OVERRIDE : URL_PRODUKSI;
+    if (OVERRIDE.length > 0) {
+      return OVERRIDE;
+    }
+    return typeof __DEV__ !== 'undefined' && __DEV__ ? URL_DEV_LOCAL : URL_PRODUKSI;
   },
 
   /** true = repository memakai data demo in-memory (bukan menembak backend). */

@@ -36,6 +36,8 @@ import { pelangganRouter } from "./modules/pelanggan/pelanggan.router"
 import { meterRouter } from "./modules/meter/meter.router"
 import { pembacaanRouter } from "./modules/pembacaan/pembacaan.router"
 import { tagihanRouter } from "./modules/tagihan/tagihan.router"
+import { closingRouter } from "./modules/closing/closing.router"
+import { kesehatanRouter } from "./modules/kesehatan/kesehatan.router"
 import { tagihanLainRouter } from "./modules/tagihan/tagihan-lain.router"
 import { pembayaranRouter } from "./modules/pembayaran/pembayaran.router"
 import { pengaduanRouter } from "./modules/pengaduan/pengaduan.router"
@@ -43,6 +45,7 @@ import { laporanHarianRouter } from "./modules/laporan/laporan-harian.router"
 import { laporanMandiriRouter } from "./modules/laporan/laporan-mandiri.router"
 import { mutasiRouter } from "./modules/mutasi/mutasi.router"
 import { pemutusanRouter } from "./modules/pemutusan/pemutusan.router"
+import { imporRouter } from "./modules/impor/impor.router"
 import { potensiRouter } from "./modules/potensi/potensi.router"
 import { userRouter } from "./modules/user/user.router"
 import { auditRouter } from "./modules/audit/audit.router"
@@ -156,6 +159,9 @@ v1.route("/pelanggan", pelangganRouter)
 v1.route("/meter", meterRouter)
 v1.route("/pembacaan", pembacaanRouter)
 v1.route("/tagihan", tagihanRouter)
+// Closing periode: mengubah pembacaan terverifikasi jadi tagihan resmi.
+v1.route("/closing", closingRouter)
+v1.route("/kesehatan", kesehatanRouter)
 v1.route("/tagihan-lain", tagihanLainRouter)
 v1.route("/pembayaran", pembayaranRouter)
 v1.route("/pengaduan", pengaduanRouter)
@@ -163,6 +169,8 @@ v1.route("/laporan-harian", laporanHarianRouter)
 v1.route("/laporan-mandiri", laporanMandiriRouter)
 v1.route("/mutasi", mutasiRouter)
 v1.route("/pemutusan", pemutusanRouter)
+// Impor berkas sumber per batch (pencatatan harian, pemutusan).
+v1.route("/impor", imporRouter)
 v1.route("/potensi", potensiRouter)
 v1.route("/users", userRouter)
 v1.route("/audit-log", auditRouter)

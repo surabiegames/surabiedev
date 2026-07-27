@@ -54,7 +54,23 @@ model PembacaanMeter {
   periode        DateTime
   standLalu      Int
   standAkhir     Int
+  /// PEMAKAIAN YANG DITAGIHKAN (sumber: `pakai_drd`) — inilah angka yang
+  /// masuk Tagihan dan dilihat pelanggan. SERING BERBEDA dari selisih
+  /// stand: di periode 202605 berbeda pada 10.160 dari 22.523 baris (45%).
+  /// Namanya dipertahankan `pemakaianM3` (bukan diganti `pemakaianTagih`)
+  /// karena sudah dipakai di ~80 tempat lintas server/web/mobile —
+  /// perbedaannya dijelaskan di sini alih-alih lewat rename berisiko.
   pemakaianM3    Int
+  /// PEMAKAIAN YANG BENAR-BENAR TERBACA di meter = standAkhir - standLalu.
+  /// Nullable karena baris hasil impor sistem lama sebelum kolom ini ada
+  /// tidak punya nilainya. Dipisah dari `pemakaianM3` supaya pertanyaan
+  /// "kenapa saya ditagih 10 m3 padahal meter saya tidak jalan?" punya
+  /// jawaban yang bisa ditelusuri, bukan cuma satu angka tanpa asal-usul.
+  pemakaianRiil  Int?
+  /// Kenapa `pemakaianM3` berbeda dari `pemakaianRiil`. NULL = tidak
+  /// berbeda (pemakaian riil dipakai apa adanya — mayoritas baris).
+  /// Lihat packages/domain/tagihan.ts untuk aturan & dasar hukumnya.
+  alasanTaksir   AlasanTaksir?
   blokTarif      Int
   pemakaianLalu  Int?
   blokTarifLalu  Int?
@@ -88,6 +104,23 @@ model Tagihan {
   nomorTagihan      String              @unique @default(cuid())
   pelangganId       String
   pembacaanId       String?             @unique
+  /// GOLONGAN TARIF YANG DIPAKAI SAAT TAGIHAN INI DITERBITKAN — dibekukan,
+  /// bukan diambil lewat relasi Pelanggan saat dibaca.
+  ///
+  /// `Pelanggan.tarifGolonganId` adalah nilai BERJALAN; tagihan adalah
+  /// dokumen SEJARAH. Tanpa pembekuan ini, tagihan lama tidak bisa
+  /// menjelaskan dasarnya sendiri begitu pelanggannya pindah golongan —
+  /// dan itu persis yang ditanyakan pelanggan saat mengadu dan diperiksa
+  /// auditor.
+  ///
+  /// Ditemukan dari kejadian nyata: tiga pelanggan berpindah golongan antara
+  /// April dan Juni 2026, dan menghitung ulang tagihan MEI memakai golongan
+  /// HARI INI langsung meleset (mis. 2A3 vs 3B = selisih Rp 241.140).
+  ///
+  /// Nullable karena baris warisan impor Aurora tidak membawanya; diisi
+  /// belakangan lewat backfill yang MENURUNKANNYA dari angka tagihan itu
+  /// sendiri (golongan mana yang blok tarifnya mereproduksi jmlHargaAir).
+  tarifGolonganId   String?
   periode           DateTime
   pemakaianM3       Int
   jmlHargaAir       Int
@@ -116,6 +149,7 @@ model Tagihan {
   riwayatPembayaran RiwayatPembayaran[]
   pelanggan         Pelanggan           @relation(fields: [pelangganId], references: [id])
   pembacaan         PembacaanMeter?     @relation(fields: [pembacaanId], references: [id])
+  tarifGolongan     TarifGolongan?      @relation(fields: [tarifGolonganId], references: [id])
   validator         User?               @relation("TagihanValidator", fields: [validatorId], references: [id])
 
   @@index([pelangganId, periode])
@@ -181,6 +215,26 @@ model RiwayatPembayaran {
 
 /// Dipetakan dari ukmeter (ProgresCater) dan kd_ukmeter (PBPK).
 /// PBPK memakai kode "A" untuk 1/2 inci -> dimap ke INCH_HALF saat seed.
+/// Alasan pemakaian yang DITAGIHKAN berbeda dari yang TERBACA di meter.
+/// Nilai & aturannya didefinisikan di packages/domain/tagihan.ts — enum ini
+/// hanya tempat menyimpannya. Diturunkan dari data 202605 dan dikonfirmasi
+/// ke aturan yang berlaku:
+///   MINIMUM_5M3         pemakaian di bawah 5 m3 ditagih 5 m3. Dasar:
+///                       Peraturan Direksi (Perdir). Diterapkan verifikator.
+///   TAKSIRAN_BULAN_LALU meter tidak terbaca (rumah kosong, meter rusak,
+///                       terhalang, dst) -> dipakai angka periode lalu.
+///   NOL_TIDAK_ADA_AIR   tidak ada air / sudah dicabut -> 0 m3, pemakaian
+///                       minimum TIDAK berlaku (terverifikasi: kode `8` dan
+///                       `D` selalu 0, tanpa pengecualian).
+///   OVERRIDE_MANUAL     verifikator menetapkan angka lain secara sadar.
+///                       Tidak ada rumusnya — yang wajib ada jejaknya.
+enum AlasanTaksir {
+  MINIMUM_5M3
+  TAKSIRAN_BULAN_LALU
+  NOL_TIDAK_ADA_AIR
+  OVERRIDE_MANUAL
+}
+
 enum UkuranMeter {
   INCH_HALF
   INCH_1
@@ -252,4 +306,63 @@ enum StatusPembayaran {
   BERHASIL
   GAGAL
   EXPIRED
+}
+
+// ============================================================================
+// CLOSING PERIODE — penerbitan tagihan resmi satu periode sekaligus
+// ============================================================================
+
+/// Status penagihan satu periode (thbl). Satu baris per periode.
+///
+/// KENAPA HARUS ADA TABELNYA, bukan sekadar "ada Tagihan berarti sudah closing":
+///
+/// 1. **Tanggal jatuh tempo akhirnya punya sumber.** Sebelum ini setiap
+///    Tagihan memakai placeholder `periode + 1 bulan` yang dikarang kode
+///    impor — tidak ada di CSV mana pun. Sekarang tanggalnya ditetapkan
+///    SEKALI saat menutup periode oleh orang yang berwenang, dan seluruh
+///    tagihan periode itu memakainya. Satu keputusan, satu jejak.
+///
+/// 2. **Menagih dua kali harus mustahil, bukan sekadar tidak disengaja.**
+///    Selama `status = TERKUNCI`, penerbitan tagihan periode itu ditolak.
+///    Tanpa penanda eksplisit, satu klik ganda pada tombol closing bisa
+///    menerbitkan tagihan kedua untuk pelanggan yang sama.
+///
+/// 3. **Angka DRD dibekukan sebagai bukti.** jumlahSL/totalM3/totalTagihan
+///    di-snapshot saat penutupan. Menghitungnya ulang saat dibaca akan
+///    membuat laporan bulan lalu diam-diam berubah setiap kali ada koreksi
+///    data — padahal yang sudah terlanjur ditagihkan ke pelanggan tidak
+///    ikut berubah. Pola yang sama dipakai target SLA di Pengaduan.
+model PeriodePenagihan {
+  id                String                 @id @default(cuid())
+  /// thbl, mis. 202605. Satu baris per periode.
+  periode           Int                    @unique
+  status            StatusPeriodePenagihan @default(BERJALAN)
+  /// Jatuh tempo seluruh tagihan periode ini — DITETAPKAN MANUSIA saat
+  /// menutup periode, bukan diturunkan dari rumus.
+  tanggalJatuhTempo DateTime?
+  ditutupAt         DateTime?
+  ditutupById       String?
+  dibukaAt          DateTime?
+  dibukaById        String?
+  /// Alasan periode dibuka kembali — wajib diisi saat membuka, karena
+  /// membuka periode yang sudah ditagihkan adalah tindakan luar biasa.
+  alasanBuka        String?
+  /// Snapshot hasil closing (lihat alasan 3 di atas). Null selama BERJALAN.
+  jumlahSL          Int?
+  totalM3           Int?
+  totalTagihan      BigInt?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  ditutupBy         User?                  @relation("PeriodeDitutupBy", fields: [ditutupById], references: [id])
+  dibukaBy          User?                  @relation("PeriodeDibukaBy", fields: [dibukaById], references: [id])
+
+  @@index([status])
+  @@map("periode_penagihan")
+}
+
+enum StatusPeriodePenagihan {
+  /// Masih menerima pencatatan & verifikasi. Tagihan belum terbit.
+  BERJALAN
+  /// Tagihan sudah terbit dan periode dikunci — tidak bisa ditagih ulang.
+  TERKUNCI
 }

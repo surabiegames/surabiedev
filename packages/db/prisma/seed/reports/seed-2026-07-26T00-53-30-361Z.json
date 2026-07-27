@@ -1,0 +1,38 @@
+{
+  "startedAt": "2026-07-26T00:53:30.361Z",
+  "finishedAt": "2026-07-26T00:54:20.183Z",
+  "counts": {
+    "08-mutasi": {
+      "created": 15,
+      "updated": 54,
+      "unchanged": 0,
+      "skipped": 1
+    },
+    "11-daftar-catat": {
+      "created": 15,
+      "updated": 0,
+      "unchanged": 0,
+      "skipped": 0
+    }
+  },
+  "statusChanges": [],
+  "pemutusanNeedsReview": [],
+  "issues": [
+    {
+      "step": "08-mutasi",
+      "level": "warn",
+      "message": "mutasian \"1\" bukan PB/PK untuk 00406100773, baris dilewati",
+      "key": "00406100773"
+    },
+    {
+      "step": "11-daftar-catat",
+      "level": "warn",
+      "message": "Aritmetika daftar catat per periode — 202601: 22575 = ditagih 22549 + dicabut 0 + PBPK 26 | 202602: 22583 = ditagih 22551 + dicabut 24 + PBPK 8 | 202603: 22564 = ditagih 22532 + dicabut 27 + PBPK 5 | 202604: 22552 = ditagih 22527 + dicabut 10 + PBPK 15 | 202605: 22553 = ditagih 22523 + dicabut 19 + PBPK 11 | 202606: 22539 = ditagih 22515 + dicabut 19 + PBPK 5"
+    },
+    {
+      "step": "11-daftar-catat",
+      "level": "warn",
+      "message": "80 pelanggan hilang dari ProgresCater tanpa baris r-nomor — status diset TUTUP_SEMENTARA, jenis pencabutan WAJIB ditinjau petugas: 00009001848, 00009201161, 00404100461, 00401400105, 00402600120, 00402900115, 00402900281, 00403700590, 00403900295, 00404700380, 00406050327, 00407200725, 00800100630, 00801200779, 00802200810, 00802300150, 00804300250, 00804700440, 00804900480, 00901010197 … (+60 lagi)"
+    }
+  ]
+}

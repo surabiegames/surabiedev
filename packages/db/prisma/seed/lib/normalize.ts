@@ -13,7 +13,7 @@ import type {
   GolonganTarif,
   KondisiCatat,
   UkuranMeter,
-} from "@/app/generated/prisma"
+} from "../../../generated/client"
 
 export function trimOrNull(raw: string | null | undefined): string | null {
   if (raw == null) return null
@@ -96,10 +96,17 @@ export function periodeToDate(periode: number): Date {
 /// Excel serial date (basis 1899-12-30, dipakai PBPK.tglaktif). Menangani
 /// baik serial murni tanggal (tanpa pecahan, mis. baris "PK") maupun
 /// serial tanggal+jam (dengan pecahan, mis. baris "PB").
+///
+/// KOMA DITERIMA SEBAGAI PEMISAH DESIMAL. Berkas PBPK yang dikonversi dari
+/// .xlsx lewat Excel/LibreOffice berlokal Indonesia menulis serialnya
+/// "46136,8972222222", dan Number() memulangkan NaN untuk itu. Dulu
+/// akibatnya senyap: pemanggil (08-mutasi.ts) hanya mengisi tanggalAktif
+/// bila hasilnya truthy, jadi 13 dari 15 baris April kehilangan tanggal
+/// tanpa satu pun peringatan. Berkas ber-titik tetap jalan seperti semula.
 export function parseExcelSerial(raw: string | null | undefined): Date | null {
   const trimmed = trimOrNull(raw)
   if (trimmed === null) return null
-  const serial = Number(trimmed)
+  const serial = Number(trimmed.replace(",", "."))
   if (!Number.isFinite(serial) || serial <= 0) return null
   const msPerDay = 86_400_000
   return new Date(Math.round((serial - 25569) * msPerDay))

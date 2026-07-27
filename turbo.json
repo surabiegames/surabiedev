@@ -7,15 +7,22 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "format": {
-      "dependsOn": ["^format"]
-    },
-    "typecheck": {
-      "dependsOn": ["^typecheck"]
-    },
+    // `lint` & `format` juga TANPA dependsOn, dengan alasan yang sama seperti
+    // typecheck di bawah: memeriksa gaya sebuah paket tidak menghasilkan
+    // apa pun yang dibutuhkan paket hilir, sementara urutannya terjebak di
+    // lingkar @workspace/db <-> @workspace/domain dan menggagalkan seluruh
+    // perintah sebelum satu berkas pun diperiksa.
+    "lint": {},
+    "format": {},
+    // SENGAJA TANPA `dependsOn: ["^typecheck"]`. Tidak ada paket workspace
+    // yang punya script build — semuanya mengekspor .ts mentah dan
+    // typecheck-nya `tsc --noEmit`, jadi typecheck hulu tidak menghasilkan
+    // artefak (.d.ts) yang dibutuhkan hilir; urutannya tidak membeli apa pun.
+    // Sebaliknya ia MEMATIKAN perintahnya: @workspace/domain memakai tipe
+    // enum dari @workspace/db, sedangkan @workspace/db memakai aturan tarif
+    // dari @workspace/domain/tagihan — melingkar, dan turbo menolak jalan
+    // sama sekali. tsc sendiri menyelesaikan lingkar itu lewat filesystem.
+    "typecheck": {},
     "dev": {
       "cache": false,
       "persistent": true

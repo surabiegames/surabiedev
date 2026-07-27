@@ -14,8 +14,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { Alert, AppScaffold, Button, Card, TextField, useTheme } from '@workspace/mobile-ui';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field } from '@/components/ui/field';
+import { Text as UIText } from '@/components/ui/text';
+import { AppScaffold, useTheme } from '@/components';
 import { ApiException, type CekTagihanResult } from '@workspace/mobile-core';
 
 import { buatCekTagihanRepository } from './repository';
@@ -59,37 +65,42 @@ export function CekTagihanScreen() {
       onBack={() => router.back()}
       body={
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Card
-            title="Nomor Langganan"
-            description="Masukkan 11 digit nomor langganan sesuai yang tertera pada rekening air Anda."
-          >
-            <View style={styles.form}>
-              <TextField
-                value={nomor}
-                // Saring hanya digit + batasi 11 (padanan inputFormatters Flutter).
-                onChangeText={(t) => setNomor(t.replace(/\D/g, '').slice(0, 11))}
-                placeholder="Contoh: 00000100119"
-                keyboardType="number-pad"
-                maxLength={11}
-                error={galatInput}
-              />
-              <Button
-                onPress={cek}
-                loading={memuat}
-                leading={
-                  memuat ? undefined : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Nomor Langganan</CardTitle>
+              <CardDescription>
+                Masukkan 11 digit nomor langganan sesuai yang tertera pada rekening air Anda.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <View style={styles.form}>
+                <Field
+                  value={nomor}
+                  // Saring hanya digit + batasi 11 (padanan inputFormatters Flutter).
+                  onChangeText={(t) => setNomor(t.replace(/\D/g, '').slice(0, 11))}
+                  placeholder="Contoh: 00000100119"
+                  keyboardType="number-pad"
+                  maxLength={11}
+                  error={galatInput}
+                />
+                <Button onPress={cek} disabled={memuat} className="h-11 w-full">
+                  {memuat ? (
+                    <ActivityIndicator size="small" color={colors.primaryForeground} />
+                  ) : (
                     <Ionicons name="search" size={16} color={colors.primaryForeground} />
-                  )
-                }
-              >
-                {memuat ? 'Memeriksa…' : 'Cek Tagihan'}
-              </Button>
-            </View>
+                  )}
+                  <UIText>{memuat ? 'Memeriksa…' : 'Cek Tagihan'}</UIText>
+                </Button>
+              </View>
+            </CardContent>
           </Card>
 
           {galat != null ? (
             <View style={styles.spacer}>
-              <Alert variant="destructive" title="Pemeriksaan gagal" description={galat} />
+              <Alert icon={TriangleAlert} variant="destructive">
+                <AlertTitle>Pemeriksaan gagal</AlertTitle>
+                <AlertDescription>{galat}</AlertDescription>
+              </Alert>
             </View>
           ) : null}
 

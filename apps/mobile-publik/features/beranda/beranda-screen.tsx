@@ -6,7 +6,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { MasterPalette as P, PremiumBackground, SectionHeader, useTheme } from '@workspace/mobile-ui';
+import { Gauge, MessageSquareWarning, ReceiptText, Search } from 'lucide-react-native';
+import { MasterPalette as P, PremiumBackground, SectionHeader, useTheme } from '@/components';
 import { ApiConfig, SesiWarga } from '@workspace/mobile-core';
 
 import { LanggananSayaSection } from '../langganan/langganan-saya-section';
@@ -33,10 +34,10 @@ export function BerandaScreen() {
   const bukaAkun = () => router.navigate('/(tabs)/akun');
 
   const aksi: QuickAction[] = [
-    { ikon: 'document-text', label: 'Cek Tagihan', gradasi: [P.sky300, P.sky600], onPress: () => router.push('/cek-tagihan') },
-    { ikon: 'speedometer', label: 'Lapor Meter', gradasi: [P.teal, P.teal600], onPress: () => router.push('/lapor-meter') },
-    { ikon: 'chatbubble-ellipses', label: 'Pengaduan', gradasi: [P.rose400, P.rose600], onPress: () => router.push('/pengaduan') },
-    { ikon: 'search', label: 'Lacak Tiket', gradasi: [P.emerald400, P.emerald600], onPress: () => router.push('/lacak-tiket') },
+    { ikon: ReceiptText, label: 'Cek Tagihan', gradasi: [P.sky300, P.sky600], onPress: () => router.push('/cek-tagihan') },
+    { ikon: Gauge, label: 'Lapor Meter', gradasi: [P.teal, P.teal600], onPress: () => router.push('/lapor-meter') },
+    { ikon: MessageSquareWarning, label: 'Pengaduan', gradasi: [P.rose400, P.rose600], onPress: () => router.push('/pengaduan') },
+    { ikon: Search, label: 'Lacak Tiket', gradasi: [P.emerald400, P.emerald600], onPress: () => router.push('/lacak-tiket') },
   ];
 
   return (

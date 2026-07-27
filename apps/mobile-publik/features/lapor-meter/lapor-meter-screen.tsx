@@ -10,10 +10,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Location from 'expo-location';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { Alert, AppScaffold, Button, Dialog, PhotoBox, TextField, useTheme } from '@workspace/mobile-ui';
+import { TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Text as UIText } from '@/components/ui/text';
+import { AppDialog } from '@/components/ui/app-dialog';
+import { AppScaffold, PhotoBox, useTheme } from '@/components';
 import { ApiException, labelPeriode, SesiWarga } from '@workspace/mobile-core';
 
 import { LanggananSayaCache } from '../langganan/repository';
@@ -132,7 +138,7 @@ export function LaporMeterScreen() {
       body={
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
-            <TextField
+            <Field
               label="Nomor Langganan"
               placeholder="11 digit nomor langganan"
               value={nomorLangganan}
@@ -140,7 +146,7 @@ export function LaporMeterScreen() {
               keyboardType="number-pad"
               error={errors.nomorLangganan}
             />
-            <TextField
+            <Field
               label="Angka Meter Saat Ini (m³)"
               placeholder="Contoh: 1245"
               description="Tulis angka HITAM pada meter air, tanpa angka merah di belakang koma."
@@ -169,43 +175,63 @@ export function LaporMeterScreen() {
               ) : null}
             </View>
 
-            <TextField label="Nama Pelapor" placeholder="Nama lengkap Anda" value={namaPelapor} onChangeText={setNamaPelapor} error={errors.namaPelapor} />
-            <TextField label="Nomor HP" placeholder="08xxxxxxxxxx" value={nomorPelapor} onChangeText={setNomorPelapor} keyboardType="phone-pad" error={errors.nomorPelapor} />
+            <Field label="Nama Pelapor" placeholder="Nama lengkap Anda" value={namaPelapor} onChangeText={setNamaPelapor} error={errors.namaPelapor} />
+            <Field label="Nomor HP" placeholder="08xxxxxxxxxx" value={nomorPelapor} onChangeText={setNomorPelapor} keyboardType="phone-pad" error={errors.nomorPelapor} />
 
-            {galat != null ? <Alert variant="destructive" title="Gagal mengirim" description={galat} /> : null}
+            {galat != null ? (
+              <Alert icon={TriangleAlert} variant="destructive">
+                <AlertTitle>Gagal mengirim</AlertTitle>
+                <AlertDescription>{galat}</AlertDescription>
+              </Alert>
+            ) : null}
 
-            <Button onPress={konfirmasiLaluKirim} loading={mengirim} leading={mengirim ? undefined : <Ionicons name="paper-plane" size={16} color={colors.primaryForeground} />}>
-              {mengirim ? 'Mengirim…' : 'Kirim Laporan'}
+            <Button onPress={konfirmasiLaluKirim} disabled={mengirim} className="h-11 w-full">
+              {mengirim ? (
+                <ActivityIndicator size="small" color={colors.primaryForeground} />
+              ) : (
+                <Ionicons name="paper-plane" size={16} color={colors.primaryForeground} />
+              )}
+              <UIText>{mengirim ? 'Mengirim…' : 'Kirim Laporan'}</UIText>
             </Button>
           </View>
         </ScrollView>
       }
     >
-      <Dialog
+      <AppDialog
         visible={dialogFoto}
         onDismiss={() => setDialogFoto(false)}
         title="Foto Meter"
         description="Ambil foto angka meter dengan jelas."
         actions={
           <>
-            <Button onPress={() => pilihFoto('kamera')}>Kamera</Button>
-            <Button variant="outline" onPress={() => pilihFoto('galeri')}>Galeri</Button>
+            <Button onPress={() => pilihFoto('kamera')} className="h-11 w-full">
+              <UIText>Kamera</UIText>
+            </Button>
+            <Button variant="outline" onPress={() => pilihFoto('galeri')} className="h-11 w-full">
+              <UIText>Galeri</UIText>
+            </Button>
             {fotoUri != null ? (
-              <Button variant="destructive" onPress={() => { setFotoUri(null); setDialogFoto(false); }}>Hapus</Button>
+              <Button variant="destructive" className="h-11 w-full" onPress={() => { setFotoUri(null); setDialogFoto(false); }}>
+                <UIText>Hapus</UIText>
+              </Button>
             ) : null}
           </>
         }
       />
 
-      <Dialog
+      <AppDialog
         visible={konfirmasi}
         onDismiss={() => setKonfirmasi(false)}
         title="Konfirmasi Laporan"
         description="Periksa kembali data berikut sebelum dikirim. Angka meter yang keliru dapat memengaruhi tagihan Anda."
         actions={
           <>
-            <Button onPress={kirim}>Kirim Laporan</Button>
-            <Button variant="outline" onPress={() => setKonfirmasi(false)}>Periksa Lagi</Button>
+            <Button onPress={kirim} className="h-11 w-full">
+              <UIText>Kirim Laporan</UIText>
+            </Button>
+            <Button variant="outline" onPress={() => setKonfirmasi(false)} className="h-11 w-full">
+              <UIText>Periksa Lagi</UIText>
+            </Button>
           </>
         }
       >
@@ -216,9 +242,9 @@ export function LaporMeterScreen() {
           <BarisKonfirmasi label="Kontak" nilai={nomorPelapor} />
           <BarisKonfirmasi label="Lokasi" nilai={koordinat != null ? 'Terlampir' : 'Tidak tersedia'} />
         </Animated.View>
-      </Dialog>
+      </AppDialog>
 
-      <Dialog
+      <AppDialog
         visible={sukses != null}
         onDismiss={() => setSukses(null)}
         title="Laporan Terkirim"
@@ -227,7 +253,11 @@ export function LaporMeterScreen() {
             ? `${sukses.pesan}\n\nPeriode: ${labelPeriode(sukses.periode)}\nAngka dilaporkan: ${sukses.standDilaporkan} m³`
             : ''
         }
-        actions={<Button onPress={() => setSukses(null)}>Selesai</Button>}
+        actions={
+          <Button onPress={() => setSukses(null)} className="h-11 w-full">
+            <UIText>Selesai</UIText>
+          </Button>
+        }
       />
     </AppScaffold>
   );

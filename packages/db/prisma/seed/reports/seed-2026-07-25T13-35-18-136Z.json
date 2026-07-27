@@ -1,0 +1,15 @@
+{
+  "startedAt": "2026-07-25T13:35:18.136Z",
+  "finishedAt": "2026-07-25T13:37:35.002Z",
+  "counts": {
+    "05-pelanggan": {
+      "created": 0,
+      "updated": 22523,
+      "unchanged": 30,
+      "skipped": 0
+    }
+  },
+  "statusChanges": [],
+  "pemutusanNeedsReview": [],
+  "issues": []
+}

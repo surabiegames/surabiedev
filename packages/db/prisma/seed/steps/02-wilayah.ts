@@ -211,8 +211,45 @@ export async function seedWilayah(prisma: PrismaClientLike, report: SeedReport):
       key: kode,
     })
   }
+  // CADANGAN untuk rute yang `caterseksikode`-nya KOSONG di sumber. Tanpa ini
+  // rutenya dilewati, dan akibatnya berantai sampai jauh: pelanggan di rute
+  // itu jadi tanpa `ruteId`, tidak masuk beban kerja pencatat mana pun, dan
+  // di layar closing muncul sebagai "belum ada petugasnya" — padahal di
+  // ProgresCater mereka ditagih tiap bulan dengan petugas yang jelas.
+  // Nyatanya di data 202605: TA610 dan TC117 (petugas DANI, ditagih di Mar,
+  // Apr, Mei, DAN Juni) hilang karena ini.
+  //
+  // Seksinya disimpulkan dari SEKSI MAYORITAS PETUGAS rute tersebut — teknik
+  // yang sama dengan resolveMajorityParent di atas, hanya kuncinya petugas.
+  // Dasarnya: petugas bekerja dalam satu seksi (DANI: 2.370 baris C4 vs 1
+  // baris C5). Ini TETAP tebakan, jadi selalu diberi peringatan agar
+  // dikoreksi manusia di Data Induk — tapi tebakan yang terlihat jauh lebih
+  // baik daripada dua pelanggan yang diam-diam lenyap dari daftar kerja.
+  const seksiMayoritasPetugas = resolveMajorityParent(
+    rows,
+    (r) => r.pencatat,
+    (r) => r.caterseksikode
+  )
+  const petugasRute = resolveMajorityParent(
+    rows,
+    (r) => r.rute_kode,
+    (r) => r.pencatat
+  )
+
   for (const kode of ruteKodes) {
-    const seksiKode = ruteToSeksi.parentOf.get(kode)
+    let seksiKode = ruteToSeksi.parentOf.get(kode)
+    if (!seksiKode) {
+      const petugas = petugasRute.parentOf.get(kode)
+      const tebakan = petugas ? seksiMayoritasPetugas.parentOf.get(petugas) : undefined
+      if (tebakan) {
+        seksiKode = tebakan
+        report.warn(
+          STEP,
+          `Rute ${kode} tidak punya caterseksikode di sumber — seksi disimpulkan "${tebakan}" dari seksi mayoritas petugasnya (${petugas}). PERIKSA & koreksi di Data Induk.`,
+          { key: kode }
+        )
+      }
+    }
     const seksi = seksiKode ? await prisma.seksiCater.findUnique({ where: { kode: seksiKode } }) : null
     if (!seksi) {
       report.warn(STEP, `Rute ${kode} tidak punya SeksiCater induk yang valid, dilewati`, { key: kode })

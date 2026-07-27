@@ -284,7 +284,7 @@ export function VerifikasiMandiri({ bisaAksi }: { bisaAksi: boolean }) {
           <p className="shrink-0 text-xs text-destructive">{galatStats}</p>
         )}
         <div className="shrink-0">
-          <RingkasanVerifikasi stats={stats} />
+          <RingkasanVerifikasi stats={stats} periode={periode ?? null} />
         </div>
 
         <div className="min-h-0 min-w-0 flex-1">

@@ -9,8 +9,13 @@
  */
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Alert, Button, TextField, useTheme } from '@workspace/mobile-ui';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Text as UIText } from '@/components/ui/text';
+import { useTheme } from '@/components';
 import { ApiException, SesiWarga, type WargaAkun } from '@workspace/mobile-core';
 
 import { PratinjauPelanggan } from '../langganan/pratinjau-pelanggan';
@@ -63,10 +68,10 @@ export function DaftarWargaForm({
 
   return (
     <View style={styles.form}>
-      <TextField label="Nama lengkap" placeholder="Nama Anda" value={nama} onChangeText={setNama} error={errors.nama} />
-      <TextField label="Email" placeholder="nama@email.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" error={errors.email} />
+      <Field label="Nama lengkap" placeholder="Nama Anda" value={nama} onChangeText={setNama} error={errors.nama} />
+      <Field label="Email" placeholder="nama@email.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" error={errors.email} />
       <View>
-        <TextField
+        <Field
           label="Nomor langganan"
           placeholder="11 digit, contoh: 00000100119"
           description="Ada di lembar tagihan air Anda. Bisa menambah nomor lain setelah mendaftar."
@@ -77,11 +82,21 @@ export function DaftarWargaForm({
         />
         <PratinjauPelanggan nomor={nomorLangganan} />
       </View>
-      <TextField label="Password" placeholder="••••••••" description={`Minimal ${PANJANG_PASSWORD_MIN} karakter.`} value={password} onChangeText={setPassword} secureTextEntry error={errors.password} />
-      <TextField label="Konfirmasi password" placeholder="••••••••" value={konfirmasi} onChangeText={setKonfirmasi} secureTextEntry error={errors.konfirmasi} />
-      {galat != null ? <Alert variant="destructive" title="Gagal mendaftar" description={galat} /> : null}
-      <Button onPress={daftar} loading={mengirim} leading={mengirim ? undefined : <Ionicons name="person-add" size={16} color={colors.primaryForeground} />}>
-        {mengirim ? 'Mendaftar…' : 'Daftar akun'}
+      <Field label="Password" placeholder="••••••••" description={`Minimal ${PANJANG_PASSWORD_MIN} karakter.`} value={password} onChangeText={setPassword} secureTextEntry error={errors.password} />
+      <Field label="Konfirmasi password" placeholder="••••••••" value={konfirmasi} onChangeText={setKonfirmasi} secureTextEntry error={errors.konfirmasi} />
+      {galat != null ? (
+        <Alert icon={TriangleAlert} variant="destructive">
+          <AlertTitle>Gagal mendaftar</AlertTitle>
+          <AlertDescription>{galat}</AlertDescription>
+        </Alert>
+      ) : null}
+      <Button onPress={daftar} disabled={mengirim} className="h-11 w-full">
+        {mengirim ? (
+          <ActivityIndicator size="small" color={colors.primaryForeground} />
+        ) : (
+          <Ionicons name="person-add" size={16} color={colors.primaryForeground} />
+        )}
+        <UIText>{mengirim ? 'Mendaftar…' : 'Daftar akun'}</UIText>
       </Button>
       {onTukarKeMasuk != null ? (
         <Pressable disabled={mengirim} onPress={onTukarKeMasuk} style={styles.tautan}>

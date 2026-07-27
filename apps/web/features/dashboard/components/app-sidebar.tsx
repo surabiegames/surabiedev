@@ -11,6 +11,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   ArchiveRestore,
+  FileUp,
   ArrowLeftRight,
   ArrowUpRight,
   BadgeCheck,
@@ -19,12 +20,17 @@ import {
   Camera,
   ClipboardCheck,
   ClipboardList,
+  DatabaseBackup,
   FileCheck2,
   FileSpreadsheet,
   Gauge,
+  HeartPulse,
   LayoutDashboard,
+  LockKeyhole,
   Map,
+  MapPin,
   MessageSquareWarning,
+  PlugZap,
   Receipt,
   ReceiptText,
   Route,
@@ -71,8 +77,11 @@ const MENU = [
     minRole: null,
     item: [
       { href: "/dashboard/pelanggan", label: "Data pelanggan", icon: Users },
+      { href: "/dashboard/master-pelanggan", label: "Rekonsiliasi data induk", icon: DatabaseBackup },
+      { href: "/dashboard/pbpk", label: "Impor PBPK", icon: PlugZap },
+      { href: "/dashboard/pemetaan-sambungan", label: "Mutasi PBPK", icon: MapPin },
       { href: "/dashboard/meter", label: "Meter", icon: Gauge },
-      { href: "/dashboard/mutasi", label: "Mutasi", icon: ArrowLeftRight },
+      { href: "/dashboard/mutasi", label: "Riwayat mutasi", icon: ArrowLeftRight },
       { href: "/dashboard/pemutusan", label: "Pemutusan", icon: Unplug },
       { href: "/dashboard/potensi", label: "Potensi pelanggan", icon: UserPlus },
     ],
@@ -82,6 +91,10 @@ const MENU = [
     minRole: null,
     item: [
       { href: "/dashboard/pembacaan", label: "Pembacaan meter", icon: ClipboardList },
+      // Ditaruh SETELAH pembacaan dan SEBELUM tagihan karena itu urutan
+      // kerjanya: pembacaan terverifikasi -> closing menerbitkan tagihan ->
+      // tagihan ditagihkan & dibayar.
+      { href: "/dashboard/closing", label: "Closing periode", icon: LockKeyhole },
       { href: "/dashboard/tagihan", label: "Tagihan air", icon: Receipt },
       { href: "/dashboard/tagihan-lain", label: "Tagihan non-air", icon: ReceiptText },
       { href: "/dashboard/pembayaran", label: "Pembayaran", icon: Wallet },
@@ -108,6 +121,7 @@ const MENU = [
       { href: "/dashboard/laporan-mandiri", label: "Laporan mandiri", icon: Camera },
       { href: "/dashboard/laporan-harian", label: "Laporan harian petugas", icon: ClipboardCheck },
       { href: "/dashboard/impor-cadangan", label: "Impor cadangan lapangan", icon: ArchiveRestore },
+      { href: "/dashboard/impor-data", label: "Impor berkas sumber", icon: FileUp },
     ],
   },
   {
@@ -132,6 +146,7 @@ const MENU = [
     minRole: MANAGEMENT_UP,
     item: [
       { href: "/dashboard/pengguna", label: "Pengguna & akses", icon: UserCog },
+      { href: "/dashboard/kesehatan", label: "Kesehatan data", icon: HeartPulse },
       { href: "/dashboard/audit-log", label: "Audit log", icon: ScrollText },
       { href: "/dashboard/konfigurasi", label: "Konfigurasi", icon: Settings2 },
     ],

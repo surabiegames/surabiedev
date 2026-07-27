@@ -46,6 +46,8 @@ model User {
   riwayatPengaduan    RiwayatPengaduan[]     @relation("RiwayatPengaduanOleh")
   sessions            Session[]
   tagihanDivalidasi   Tagihan[]              @relation("TagihanValidator")
+  periodeDitutup      PeriodePenagihan[]     @relation("PeriodeDitutupBy")
+  periodeDibuka       PeriodePenagihan[]     @relation("PeriodeDibukaBy")
   twoFactors          TwoFactor[]
   bagian              Bagian?                @relation(fields: [bagianId], references: [id])
   divisi              Divisi?                @relation(fields: [divisiId], references: [id])
@@ -155,6 +157,8 @@ model Notifikasi {
   @@map("notifikasi")
 }
 
+/// Jenjang akses. Enam yang pertama adalah jenjang STRUKTURAL kantor;
+/// PELAKSANA berdiri di luar jenjang itu.
 enum Role {
   SUPER_ADMIN
   DIREKSI
@@ -162,6 +166,18 @@ enum Role {
   MANAGER
   SUPERVISOR
   STAFF
+  /// Petugas lapangan (pencatat meter). BUKAN staf kantor, dan aksesnya
+  /// memang berbeda: ia menyetor pencatatan dari aplikasi mobile, mengunduh
+  /// rute yang ditugaskan padanya, dan mengunggah bukti — tapi tidak boleh
+  /// menyentuh layar dashboard, verifikasi, closing, atau data induk.
+  ///
+  /// Sengaja TIDAK ditaruh di bawah STAFF sebagai "STAFF yang lebih rendah":
+  /// jenjangnya bukan lebih rendah, melainkan LAIN. Karena itu ROLE_GROUPS
+  /// tidak memasukkannya ke STAFF_UP; ia punya grup sendiri (LAPANGAN).
+  ///
+  /// Penempatannya wajib jelas — User.bagianId & User.subBagianId diisi
+  /// (mis. SUB-PW5-CATER = Pencatatan Meter, Pelayanan Wilayah 5).
+  PELAKSANA
   USER
 }
 

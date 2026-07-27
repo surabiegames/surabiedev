@@ -10,7 +10,8 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Card, SectionHeader, useTheme } from '@workspace/mobile-ui';
+import { Card } from '@/components/ui/card';
+import { SectionHeader, useTheme } from '@/components';
 import { ApiException, SesiWarga } from '@workspace/mobile-core';
 
 import { KartuLangganan } from './kartu-langganan';
@@ -48,7 +49,7 @@ export function LanggananSayaSection() {
 
   if (galat != null) {
     return (
-      <Card style={styles.galatCard}>
+      <Card className="gap-0" style={styles.galatCard}>
         <Text style={[styles.galatTeks, { color: colors.mutedForeground }]}>{galat}</Text>
       </Card>
     );

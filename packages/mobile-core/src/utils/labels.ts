@@ -51,7 +51,6 @@ export const labelStatusPelanggan: Record<string, string> = {
   TUTUP_SEMENTARA: 'Tutup Sementara',
   DISEGEL: 'Disegel',
   TUTUP_SPT: 'Tutup SPT',
-  CABUT_PERMANEN: 'Cabut Permanen',
 };
 
 export const labelPrioritas: Record<string, string> = {

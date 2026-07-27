@@ -6,7 +6,7 @@
  */
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '@workspace/mobile-ui';
+import { useTheme } from '@/components';
 
 export interface CatatanButir {
   ikon: React.ComponentProps<typeof Ionicons>['name'];

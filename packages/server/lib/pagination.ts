@@ -4,11 +4,13 @@ import { z } from "zod"
 
 export const paginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  // max 1000 (semula 100): ekspor Excel di dashboard menarik seluruh baris
-  // per blok besar supaya 22 ribu baris cukup ~23 request, bukan 225.
-  // Endpoint ini seluruhnya di belakang login + RBAC, jadi blok besar bukan
-  // pintu penyalahgunaan anonim.
-  pageSize: z.coerce.number().int().min(1).max(1000).default(20),
+  // max 5000 (semula 1000, semula lagi 100). Dua pendorongnya:
+  // (1) ekspor Excel menarik baris per blok besar — 22 ribu baris cukup ~5
+  // request alih-alih 225; (2) layar verifikasi memang dikerjakan borongan,
+  // dan aplikasi lama pun menyajikan 200-5000 baris sekaligus. Endpoint ini
+  // seluruhnya di belakang login + RBAC, jadi blok besar bukan pintu
+  // penyalahgunaan anonim.
+  pageSize: z.coerce.number().int().min(1).max(5000).default(20),
 })
 
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>

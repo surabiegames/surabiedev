@@ -100,6 +100,26 @@ pemutusanRouter.post("/", requireRole(...ROLE_GROUPS.SUPERVISOR_UP), validate("j
       data: { ...body, sumberData: "API", prosesOlehId: requester.id },
     })
     if (koordinatVerifikasi) await setPoint(tx, GEO.pemutusan, row.id, koordinatVerifikasi.lat, koordinatVerifikasi.lng)
+
+    // TANDAI DAFTAR CATAT PERIODE ITU SEBAGAI DICABUT.
+    //
+    // Inilah yang membuat pemutusan benar-benar berpengaruh pada siklus.
+    // Tanpa baris ini, sambungan yang dicabut lewat aplikasi TETAP muncul di
+    // daftar kerja bulan berikutnya — terus dikunjungi dan terus ditagih —
+    // karena "buka bulan baru" mengeluarkan pelanggan berdasarkan tanda
+    // DICABUT di daftar catat, bukan berdasarkan tabel Pemutusan.
+    // Sebelumnya tanda itu HANYA pernah dibuat oleh skrip seed dari
+    // r-nomor.csv, sehingga cabutan dari aplikasi tidak berefek sama sekali.
+    //
+    // Barisnya tidak dihapus, hanya ditandai: beban kerja periode berjalan
+    // tidak boleh berubah surut — petugas memang sudah mengunjunginya.
+    if (body.pelangganId) {
+      await tx.daftarCatat.updateMany({
+        where: { periode: body.periode, pelangganId: body.pelangganId },
+        data: { status: "DICABUT", selesaiAt: new Date() },
+      })
+    }
+
     await recordAudit(tx, {
       userId: requester.id,
       aksi: `PEMUTUSAN_${body.jenis}`,

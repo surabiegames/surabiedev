@@ -6,7 +6,7 @@
 // Transaksi" mengandaikan tagihan tertaut akun + bayar online — dua hal yang
 // TIDAK ada di API ini. Menambah tab untuk fitur yang tak nyata = tombol mati.
 import { Tabs } from 'expo-router';
-import { BottomDock, type DockItem } from '@workspace/mobile-ui';
+import { BottomDock, type DockItem } from '@/components';
 
 // Ikon outline (tidak aktif) vs filled (aktif) — pola khas tab bar iOS.
 const ITEMS: Record<string, DockItem> = {

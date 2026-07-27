@@ -9,8 +9,8 @@ export default function MutasiPage() {
   return (
     <HalamanDasbor
       eyebrow="Pelanggan & Sambungan"
-      judul="Mutasi pelanggan"
-      deskripsi="Pasang baru dan perubahan kontrak sambungan per periode."
+      judul="Riwayat mutasi pelanggan"
+      deskripsi="Arsip pasang baru (PB) dan pasang kembali (PK) per periode — hanya dibaca. Pemetaan sambungan barunya dikerjakan di layar Mutasi PBPK."
     >
       <MutasiGrid />
     </HalamanDasbor>

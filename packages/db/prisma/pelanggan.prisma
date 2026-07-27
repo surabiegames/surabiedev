@@ -91,6 +91,7 @@ model Rute {
   seksiCaterId      String
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
+  daftarCatat       DaftarCatat[]
   pelanggan         Pelanggan[]
   penugasanRute     PenugasanRute[]
   potensiPelanggans PotensiPelanggan[]
@@ -170,6 +171,10 @@ model TarifGolongan {
   updatedAt DateTime      @updatedAt
   pelanggan Pelanggan[]
   blokTarif TarifBlok[]
+  /// Tagihan yang DITERBITKAN memakai golongan ini — lihat
+  /// Tagihan.tarifGolonganId. Beda dari `pelanggan` di atas: yang itu siapa
+  /// yang golongannya INI SEKARANG, yang ini apa yang DIPAKAI saat menagih.
+  tagihan   Tagihan[]
 
   @@map("tarif_golongan")
 }
@@ -186,12 +191,62 @@ model TarifBlok {
   hargaPerM3      Int
   berlakuMulai    DateTime
   berlakuSampai   DateTime?
+  /// DASAR HUKUM baris ini. Wajib diisi untuk tarif yang belum bersandar
+  /// pada SK: angka tarif menentukan uang yang ditagih ke warga, jadi harus
+  /// selalu bisa dijawab "dari mana angka ini?" tanpa menggali git log.
+  ///
+  /// Sebagian blok di sistem ini DIREKONSTRUKSI dari tagihan Aurora yang
+  /// sudah terbit (lihat prisma/PEMETAAN-DATA.md) — cara itu terbukti tepat
+  /// (135.197 pengamatan, nol konflik), TAPI rekonstruksi bukan pengesahan.
+  /// Kolom ini yang membedakan "sudah disahkan SK" dari "menunggu SK".
+  catatan         String?
   createdAt       DateTime      @default(now())
   tarifGolongan   TarifGolongan @relation(fields: [tarifGolonganId], references: [id], onDelete: Cascade)
 
   @@unique([tarifGolonganId, blok, berlakuMulai])
   @@index([tarifGolonganId])
   @@map("tarif_blok")
+}
+
+/// Komponen tagihan bulanan DI LUAR harga air. Berversi seperti TarifBlok —
+/// perubahan tarif = INSERT baris baru dengan `berlakuMulai` baru, JANGAN
+/// update baris lama (tagihan periode lampau harus tetap bisa dihitung
+/// ulang persis seperti saat diterbitkan).
+///
+/// Diturunkan dari ProgresCater, bukan diketik manual (lihat
+/// prisma/seed/lib/tarif.ts):
+///   BEA_BEBAN  — fungsi murni UKURAN METER, bukan golongan tarif.
+///                1/2"=7.000, 1"=43.000, 1.5"=72.000, 2"=129.000,
+///                3"=158.000, 4"=187.000. Terverifikasi 32 kombinasi
+///                (golongan, ukuran) tanpa satu pun konflik.
+///   BEA_ADMIN  — flat 10.000 untuk seluruh 22.523 pelanggan.
+///   AIR_KOTOR  — flat 11.100 untuk seluruh 22.523 pelanggan.
+///
+/// `ukuranMeter` NULL berarti "berlaku untuk semua ukuran" (BEA_ADMIN &
+/// AIR_KOTOR). Sengaja TIDAK ada @@unique yang memuat kolom nullable ini:
+/// Postgres menganggap dua NULL sebagai nilai BERBEDA, sehingga unique
+/// index-nya tidak akan mencegah duplikat justru pada baris flat itu.
+/// Idempotensi seed ditegakkan lewat findFirst + update/create di
+/// steps/01-referensi.ts, bukan lewat constraint.
+model BiayaTetap {
+  id            String          @id @default(cuid())
+  jenis         JenisBiayaTetap
+  /// NULL = berlaku untuk semua ukuran meter.
+  ukuranMeter   UkuranMeter?
+  nominal       Int
+  berlakuMulai  DateTime
+  berlakuSampai DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([jenis, berlakuMulai])
+  @@map("biaya_tetap")
+}
+
+enum JenisBiayaTetap {
+  BEA_BEBAN
+  BEA_ADMIN
+  AIR_KOTOR
 }
 
 /// Instansi/perusahaan berlangganan golongan besar (bank, militer,
@@ -272,11 +327,26 @@ model Pelanggan {
   /// Petugas bisa mengusulkan urutan baru dari lapangan
   /// (LaporanHarianPetugas.usulanNoUrut) — admin menerapkannya saat closing.
   noUrutRute       Int?
+  /// Daftar catat per periode (DPM) yang memuat pelanggan ini.
+  daftarCatat      DaftarCatat[]
   zonaId           String?
   kecamatanId      String?
   kelurahanId      String?
   authorId         String?
   lastEditorId     String?
+  /// ASAL-USUL PER KOLOM: peta {kolom -> sumber} untuk kolom yang
+  /// diperebutkan banyak berkas (nama, alamat, rt, rw, notelp,
+  /// tarifGolonganId). Menentukan siapa boleh menimpa siapa — aturan &
+  /// peringkatnya di `@workspace/db/asal-usul`, bukan di sini.
+  ///
+  /// Kenapa Json dan bukan tabel sendiri: isinya paling banyak enam pasang
+  /// kata per pelanggan, selalu dibaca bersama barisnya, dan tidak pernah
+  /// dicari terbalik ("kolom apa saja yang berasal dari X") dalam alur
+  /// operasional. Tabel terpisah hanya menambah join di jalur terpanas.
+  ///
+  /// Null = baris warisan sebelum pencatatan ini ada; isinya boleh ditimpa
+  /// sumber mana pun yang berhak (lihat catatan pLama di asal-usul.ts).
+  sumberKolom      Json?
   /// Soft delete — data pelanggan tidak boleh dihapus permanen (jejak
   /// billing & histori mutasi harus tetap bisa ditelusuri).
   deletedAt        DateTime?
@@ -369,13 +439,22 @@ enum ObjekBayar {
 }
 
 /// Dipetakan dari mutasinama (ProgresCater) + jenis_pemutusan (r-nomor).
+///
+/// TIDAK ADA "cabut permanen" di sini, dan itu disengaja: di PDAM tidak ada
+/// pencabutan yang selamanya — bekas pelanggan kapan pun boleh memasang
+/// kembali. Nilai `CABUT_PERMANEN` pernah ada dan sudah dihapus; ia juga
+/// bertabrakan istilah dengan `StatusDaftarCatat.DICABUT` (yang artinya
+/// "dicabut pada periode ini, tetap masuk beban kerja bulan itu"), sehingga
+/// kata "cabut" dulu menunjuk dua hal berbeda.
 enum StatusPelanggan {
   AKTIF
   TUTUP_SEMENTARA
   /// Meter disegel karena tunggakan/pelanggaran, sambungan fisik masih ada.
   DISEGEL
+  /// Ditutup karena TUNGGAKAN. Hanya bisa aktif kembali setelah pelanggan
+  /// melunasi seluruh tunggakannya — karena itu status ini terminal bagi
+  /// inferensi otomatis, lihat seed/lib/status.ts.
   TUTUP_SPT
-  CABUT_PERMANEN
 }
 
 /// PENUH = pasokan 24 jam nonstop. BERGILIR = dibatasi jam tertentu per

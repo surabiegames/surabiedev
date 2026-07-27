@@ -1,0 +1,10 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    // turbo.json resmi berformat JSONC — Turborepo menerima komentar di
+    // dalamnya. Tanpa asosiasi ini, validator JSON bawaan editor menandainya
+    // merah ("Comments are not permitted in JSON") padahal `turbo` sendiri
+    // mem-parse-nya tanpa keluhan.
+    "files.associations": {
+        "turbo.json": "jsonc"
+    }
+}

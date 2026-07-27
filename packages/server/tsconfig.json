@@ -6,6 +6,7 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["index.ts", "app.ts", "lib", "middleware", "modules", "types"],
+  "//": "`scripts` WAJIB ikut. Tanpa itu skrip CLI (cek-closing) tidak pernah ter-typecheck, dan impor basi di dalamnya lolos `pnpm typecheck` tanpa suara — persis kegagalan yang dulu terjadi di packages/db/prisma/seed (lihat prisma/PEMETAAN-DATA.md bagian 5).",
+  "include": ["index.ts", "app.ts", "lib", "middleware", "modules", "types", "scripts"],
   "exclude": ["node_modules"]
 }

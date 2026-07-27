@@ -6,14 +6,17 @@
  * Riak air (CustomPainter) & orb radial versi Flutter diringkas jadi satu
  * lingkaran cahaya tipis — cukup memberi kedalaman tanpa kanvas Skia.
  */
-import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MasterPalette as P } from '@workspace/mobile-ui';
+import { MasterPalette as P } from '@/components';
 
-const HERO = [P.emerald, P.sky, P.slate] as const;
+import { PremiumMotif } from './premium-motif';
+
+// Gradien biru SKY (bukan navy/biru tua — dilarang di app ini). Sky medium →
+// terang supaya tetap segar & khas Sky.
+const HERO = [P.sky600, P.sky500, P.sky] as const;
 
 export function BerandaHero({
   sapaan,
@@ -31,14 +34,12 @@ export function BerandaHero({
   const insets = useSafeAreaInsets();
   return (
     <LinearGradient colors={HERO} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-      {/* Cahaya orb tipis kanan-atas. */}
-      <View style={styles.orb} />
+      {/* Motif premium: riak air + orb cahaya (padanan HeroRipplePainter lama). */}
+      <PremiumMotif idPrefix="hero" tint="#FFFFFF" />
       <View style={[styles.konten, { paddingTop: insets.top + 8, paddingBottom: content == null ? 22 : 32 }]}>
         <View style={styles.baris}>
           <View style={styles.brand}>
-            <View style={styles.brandBadge}>
-              <Ionicons name="water" size={20} color="#FFFFFF" />
-            </View>
+            <Image source={require('../../assets/images/logo.png')} style={styles.brandLogo} resizeMode="contain" />
             <View style={styles.brandTeks}>
               <Text style={styles.brandKecil}>PERUMDA</Text>
               <Text style={styles.brandNama}>Tirtawening</Text>
@@ -63,11 +64,10 @@ export function BerandaHero({
 
 const styles = StyleSheet.create({
   hero: { borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden' },
-  orb: { position: 'absolute', top: -60, right: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: `${P.slate}66` },
   konten: { paddingHorizontal: 24 },
   baris: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  brandBadge: { width: 38, height: 38, borderRadius: 11, backgroundColor: '#FFFFFF1F', alignItems: 'center', justifyContent: 'center' },
+  brandLogo: { width: 40, height: 40 },
   brandTeks: { marginLeft: 10 },
   brandKecil: { fontSize: 10, fontWeight: '500', color: '#FFFFFF8C', letterSpacing: 1.5 },
   brandNama: { fontSize: 14, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },

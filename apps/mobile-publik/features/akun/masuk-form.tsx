@@ -5,8 +5,13 @@
  */
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Alert, Button, TextField, useTheme } from '@workspace/mobile-ui';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Text as UIText } from '@/components/ui/text';
+import { useTheme } from '@/components';
 import { ApiException, SesiWarga, type WargaAkun } from '@workspace/mobile-core';
 
 export function MasukWargaForm({
@@ -44,11 +49,21 @@ export function MasukWargaForm({
 
   return (
     <View style={styles.form}>
-      <TextField label="Email" placeholder="nama@email.com" value={identifier} onChangeText={setIdentifier} keyboardType="email-address" autoCapitalize="none" error={errors.identifier} />
-      <TextField label="Password" placeholder="••••••••" value={password} onChangeText={setPassword} secureTextEntry error={errors.password} />
-      {galat != null ? <Alert variant="destructive" title="Tidak dapat masuk" description={galat} /> : null}
-      <Button onPress={masuk} loading={mengirim} leading={mengirim ? undefined : <Ionicons name="log-in" size={16} color={colors.primaryForeground} />}>
-        {mengirim ? 'Memeriksa…' : 'Masuk'}
+      <Field label="Email" placeholder="nama@email.com" value={identifier} onChangeText={setIdentifier} keyboardType="email-address" autoCapitalize="none" error={errors.identifier} />
+      <Field label="Password" placeholder="••••••••" value={password} onChangeText={setPassword} secureTextEntry error={errors.password} />
+      {galat != null ? (
+        <Alert icon={TriangleAlert} variant="destructive">
+          <AlertTitle>Tidak dapat masuk</AlertTitle>
+          <AlertDescription>{galat}</AlertDescription>
+        </Alert>
+      ) : null}
+      <Button onPress={masuk} disabled={mengirim} className="h-11 w-full">
+        {mengirim ? (
+          <ActivityIndicator size="small" color={colors.primaryForeground} />
+        ) : (
+          <Ionicons name="log-in" size={16} color={colors.primaryForeground} />
+        )}
+        <UIText>{mengirim ? 'Memeriksa…' : 'Masuk'}</UIText>
       </Button>
       {onTukarKeDaftar != null ? (
         <Pressable disabled={mengirim} onPress={onTukarKeDaftar} style={styles.tautan}>

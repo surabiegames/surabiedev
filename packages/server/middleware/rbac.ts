@@ -15,7 +15,14 @@ export const ROLE_GROUPS = {
   MANAGEMENT_UP: ["SUPER_ADMIN", "DIREKSI", "SENIOR_MANAGER", "MANAGER"],
   SUPERVISOR_UP: ["SUPER_ADMIN", "DIREKSI", "SENIOR_MANAGER", "MANAGER", "SUPERVISOR"],
   STAFF_UP: ["SUPER_ADMIN", "DIREKSI", "SENIOR_MANAGER", "MANAGER", "SUPERVISOR", "STAFF"],
-  ANY: ["SUPER_ADMIN", "DIREKSI", "SENIOR_MANAGER", "MANAGER", "SUPERVISOR", "STAFF", "USER"],
+  /// Petugas lapangan. PELAKSANA SENGAJA TIDAK ADA di STAFF_UP: jenjangnya
+  /// bukan lebih rendah dari STAFF, melainkan LAIN — ia tidak boleh masuk
+  /// layar dashboard/verifikasi/closing/data induk yang dijaga STAFF_UP.
+  /// Grup ini untuk endpoint yang memang miliknya: rute-saya, setor
+  /// pencatatan, unggah bukti. Atasannya ikut disertakan supaya supervisor
+  /// bisa membuka layar yang sama saat mendampingi petugas.
+  LAPANGAN: ["SUPER_ADMIN", "DIREKSI", "SENIOR_MANAGER", "MANAGER", "SUPERVISOR", "STAFF", "PELAKSANA"],
+  ANY: ["SUPER_ADMIN", "DIREKSI", "SENIOR_MANAGER", "MANAGER", "SUPERVISOR", "STAFF", "PELAKSANA", "USER"],
 } as const satisfies Record<string, readonly Role[]>
 
 export function requireRole(...roles: readonly Role[]): MiddlewareHandler {

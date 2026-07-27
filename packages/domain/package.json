@@ -11,6 +11,10 @@
     "./sla": {
       "types": "./sla.ts",
       "default": "./sla.ts"
+    },
+    "./tagihan": {
+      "types": "./tagihan.ts",
+      "default": "./tagihan.ts"
     }
   },
   "scripts": {

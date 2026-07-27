@@ -4,13 +4,14 @@
  * bergradien + label. Ilustrasi PNG per-layanan di Flutter diganti glyph
  * Ionicons di dalam squircle (gradien domain tetap sama).
  */
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '@workspace/mobile-ui';
+import type { LucideIcon } from 'lucide-react-native';
+import { useTheme } from '@/components';
 
 export interface QuickAction {
-  ikon: React.ComponentProps<typeof Ionicons>['name'];
+  /** Komponen ikon Lucide (mis. `ReceiptText`). */
+  ikon: LucideIcon;
   label: string;
   /** Gradien dua warna atas → bawah (rumpun palet master per domain). */
   gradasi: [string, string];
@@ -29,6 +30,7 @@ export function QuickActionGrid({ aksi }: { aksi: QuickAction[] }) {
 
 function LaunchpadItem({ aksi }: { aksi: QuickAction }) {
   const { colors } = useTheme();
+  const Ikon = aksi.ikon;
   return (
     <Pressable onPress={aksi.onPress} style={styles.item}>
       {({ pressed }) => (
@@ -41,7 +43,7 @@ function LaunchpadItem({ aksi }: { aksi: QuickAction }) {
             // lintas-platform (RN 0.76+), menggantikan shadow*/elevation.
             style={[styles.squircle, pressed && styles.pressed, { boxShadow: `0px 6px 10px ${aksi.gradasi[1]}59` }]}
           >
-            <Ionicons name={aksi.ikon} size={26} color="#FFFFFF" />
+            <Ikon size={26} color="#FFFFFF" strokeWidth={2} />
           </LinearGradient>
           <Text style={[styles.label, { color: colors.foreground }]} numberOfLines={2}>
             {aksi.label}

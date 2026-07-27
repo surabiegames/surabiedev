@@ -1,0 +1,292 @@
+{
+  "startedAt": "2026-07-25T13:34:10.708Z",
+  "finishedAt": "2026-07-25T13:34:47.451Z",
+  "counts": {
+    "02-wilayah": {
+      "created": 2,
+      "updated": 0,
+      "unchanged": 192,
+      "skipped": 0
+    },
+    "04-pencatat": {
+      "created": 96,
+      "updated": 0,
+      "unchanged": 38,
+      "skipped": 0
+    }
+  },
+  "statusChanges": [],
+  "pemutusanNeedsReview": [],
+  "issues": [
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahDist \"S\" muncul dengan 4 WilayahAdm induk berbeda di data — dipilih yang paling sering, perlu konfirmasi manual ke struktur resmi PDAM",
+      "key": "S"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahDist \"B\" muncul dengan 3 WilayahAdm induk berbeda di data — dipilih yang paling sering, perlu konfirmasi manual ke struktur resmi PDAM",
+      "key": "B"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahDist \"U\" muncul dengan 3 WilayahAdm induk berbeda di data — dipilih yang paling sering, perlu konfirmasi manual ke struktur resmi PDAM",
+      "key": "U"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahDist \"T\" muncul dengan 2 WilayahAdm induk berbeda di data — dipilih yang paling sering, perlu konfirmasi manual ke struktur resmi PDAM",
+      "key": "T"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "SeksiCater \"C4\" muncul dengan 4 WilayahDist induk berbeda, dipilih mayoritas",
+      "key": "C4"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "SeksiCater \"C5\" muncul dengan 2 WilayahDist induk berbeda, dipilih mayoritas",
+      "key": "C5"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KD502\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KD502"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KD214\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KD214"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KD202\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KD202"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TA504\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TA504"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TC204\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TC204"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TA401\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TA401"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TC201\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TC201"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KD712\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KD712"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"CD104\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "CD104"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TA104\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TA104"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KD616\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KD616"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KD311\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KD311"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KC202\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KC202"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"BD501\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "BD501"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TA201\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TA201"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"BD521\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "BD521"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"KD106\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "KD106"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TC108\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TC108"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute \"TC106\" muncul dengan 2 SeksiCater induk berbeda, dipilih mayoritas",
+      "key": "TC106"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute TA610 tidak punya caterseksikode di sumber — seksi disimpulkan \"C4\" dari seksi mayoritas petugasnya (DANI). PERIKSA & koreksi di Data Induk.",
+      "key": "TA610"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Rute TC117 tidak punya caterseksikode di sumber — seksi disimpulkan \"C4\" dari seksi mayoritas petugasnya (DANI). PERIKSA & koreksi di Data Induk.",
+      "key": "TC117"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahSeksi \"B04\" muncul dengan 2 WilayahDist induk berbeda, dipilih mayoritas",
+      "key": "B04"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahSeksi \"B05\" muncul dengan 2 WilayahDist induk berbeda, dipilih mayoritas",
+      "key": "B05"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahSeksi \"U01\" muncul dengan 2 WilayahDist induk berbeda, dipilih mayoritas",
+      "key": "U01"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahSeksi \"B02\" muncul dengan 2 WilayahDist induk berbeda, dipilih mayoritas",
+      "key": "B02"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "WilayahSeksi \"T03\" muncul dengan 2 WilayahDist induk berbeda, dipilih mayoritas",
+      "key": "T03"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B02\" muncul dengan 8 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B02"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B29\" muncul dengan 3 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B29"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B05\" muncul dengan 4 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B05"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B23\" muncul dengan 4 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B23"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B30\" muncul dengan 2 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B30"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B04\" muncul dengan 2 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B04"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B32\" muncul dengan 2 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B32"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B28\" muncul dengan 3 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B28"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"T04\" muncul dengan 5 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "T04"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B27\" muncul dengan 2 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B27"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B26\" muncul dengan 2 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B26"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B24\" muncul dengan 3 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B24"
+    },
+    {
+      "step": "02-wilayah",
+      "level": "warn",
+      "message": "Zona \"B22\" muncul dengan 2 WilayahSeksi induk berbeda, dipilih mayoritas",
+      "key": "B22"
+    }
+  ]
+}

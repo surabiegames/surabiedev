@@ -7,10 +7,16 @@
     ".": {
       "types": "./index.ts",
       "default": "./index.ts"
+    },
+    "./kesehatan": {
+      "types": "./modules/kesehatan/kesehatan.service.ts",
+      "default": "./modules/kesehatan/kesehatan.service.ts"
     }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cek-closing": "tsx --conditions=react-server scripts/cek-closing.ts",
+    "backfill-golongan": "tsx --conditions=react-server scripts/backfill-golongan-tagihan.ts"
   },
   "dependencies": {
     "@hono/auth-js": "^1.1.1",
@@ -21,11 +27,14 @@
     "hono": "^4.12.31",
     "jszip": "^3.10.1",
     "next-auth": "5.0.0-beta.31",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^26",
     "@workspace/typescript-config": "workspace:*",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.23.1",
     "typescript": "^5.9.3"
   }
 }

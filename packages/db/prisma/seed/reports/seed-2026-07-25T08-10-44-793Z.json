@@ -1,0 +1,46 @@
+{
+  "startedAt": "2026-07-25T08:10:44.793Z",
+  "finishedAt": "2026-07-25T08:10:49.501Z",
+  "counts": {
+    "01-referensi": {
+      "created": 0,
+      "updated": 0,
+      "unchanged": 17,
+      "skipped": 0
+    },
+    "01-referensi:tarif-blok": {
+      "created": 46,
+      "updated": 0,
+      "unchanged": 0,
+      "skipped": 0
+    },
+    "01-referensi:biaya-tetap": {
+      "created": 8,
+      "updated": 0,
+      "unchanged": 0,
+      "skipped": 0
+    }
+  },
+  "statusChanges": [],
+  "pemutusanNeedsReview": [],
+  "issues": [
+    {
+      "step": "01-referensi",
+      "level": "warn",
+      "message": "Golongan 2A1 (4 observasi): blok 1, 2, 3, 4 tidak bisa dipastikan dari data — WAJIB diisi dari SK tarif, sengaja tidak diekstrapolasi",
+      "key": "2A1"
+    },
+    {
+      "step": "01-referensi",
+      "level": "error",
+      "message": "Anomali tagihan golongan 2B: ada baris dengan pakai=3000 m3 berharga air 11385750, padahal menurut tarif seharusnya 38046000 (selisih -26660250). Periksa baris ini di sumber data.",
+      "key": "2B:3000"
+    },
+    {
+      "step": "01-referensi",
+      "level": "warn",
+      "message": "Golongan 4A (10 observasi): blok 3, 4 tidak bisa dipastikan dari data — WAJIB diisi dari SK tarif, sengaja tidak diekstrapolasi",
+      "key": "4A"
+    }
+  ]
+}

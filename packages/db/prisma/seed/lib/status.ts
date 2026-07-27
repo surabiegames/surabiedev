@@ -3,37 +3,75 @@
 // dan dibuat sangat konservatif: satu baris CSV yang ambigu TIDAK BOLEH
 // membalik status pelanggan tanpa sinyal yang pasti.
 //
+// SATU KAMUS UNTUK SEMUA DIALEK. Kedua berkas sumber menamai dua konsep
+// yang SAMA dengan kata yang berbeda, dan dulu masing-masing diterjemahkan
+// di tempat terpisah — akibatnya "tupsp" dan "SPT" berujung status berbeda
+// padahal artinya satu. Seluruh penerjemahan sekarang di sini:
+//
+//   konsep            ProgresCater.mutasinama   r-nomor.jenis_pemutusan
+//   aktif             "PELANGGAN AKTIF"         —
+//   tutup sementara   "tupsm"                   "TSM"
+//   tutup SPT         "tupsp"                   "SPT"
+//
+// ARTI BISNISNYA (ditetapkan pemilik data):
+// - TUTUP_SPT = penutupan karena TUNGGAKAN. Sambungan hanya bisa aktif
+//   kembali setelah pelanggan melunasi seluruh tunggakannya — keputusan
+//   loket, bukan sesuatu yang boleh disimpulkan dari berkas closing.
+// - TUTUP_SEMENTARA = penutupan atas permintaan pelanggan sendiri, dan
+//   lazimnya tanpa tunggakan. Karena itu ia BOLEH hidup kembali otomatis
+//   begitu nomornya muncul lagi di ProgresCater.
+//
 // Aturan inti (jangan diubah tanpa alasan kuat & didiskusikan dulu):
-// 1. ProgresCater.mutasinama HANYA punya kosakata "PELANGGAN AKTIF" /
-//    "tupsp" / "tupsm" di data yang sudah diaudit — secara semantik ini
-//    HANYA BISA berarti AKTIF atau TUTUP_SEMENTARA. Sumber ini TIDAK
-//    PERNAH dipakai untuk set status ke TUTUP_SPT/CABUT_PERMANEN.
+// 1. Kosakata yang dikenali hanya yang SUDAH TERVERIFIKASI ada di data.
+//    Nilai di luar itu memulangkan null — tidak ditebak.
 // 2. Kalau status pelanggan yang SUDAH ADA di database berstatus terminal
-//    (TUTUP_SPT/CABUT_PERMANEN), ProgresCater TIDAK BOLEH "menghidupkan
+//    (TUTUP_SPT), ProgresCater TIDAK BOLEH "menghidupkan
 //    kembali" ke AKTIF/TUTUP_SEMENTARA hanya karena nolg itu masih
 //    muncul di file closing bulan ini — itu keputusan bisnis yang perlu
-//    konfirmasi manusia, bukan inferensi otomatis.
+//    konfirmasi manusia, bukan inferensi otomatis. Aturan ini justru yang
+//    menegakkan syarat pelunasan tunggakan di atas.
 // 3. Pemutusan (r-nomor) TIDAK PERNAH menulis Pelanggan.status sama
 //    sekali (lihat steps/09-pemutusan.ts) — hanya mencatat baris
 //    Pemutusan-nya, lalu men-flag ke SeedReport untuk ditinjau manusia.
+//    Yang MENULIS status dari kosakata r-nomor adalah step 11, lewat
+//    mapJenisPemutusanToStatus() di bawah.
 
-import type { StatusPelanggan } from "@/app/generated/prisma"
+import type { StatusPelanggan } from "../../../generated/client"
 
-const TERMINAL_STATUSES: ReadonlySet<StatusPelanggan> = new Set([
-  "TUTUP_SPT",
-  "CABUT_PERMANEN",
-])
+const TERMINAL_STATUSES: ReadonlySet<StatusPelanggan> = new Set(["TUTUP_SPT"])
 
-/// Hanya mengenali kosakata yang SUDAH TERVERIFIKASI ada di ProgresCater
-/// .mutasinama. Nilai lain (termasuk yang belum pernah teramati) sengaja
-/// return null, BUKAN ditebak — caller tidak akan mengubah status kalau
-/// null.
+/// Status yang tidak boleh dicabut kembali oleh inferensi otomatis.
+/// TUTUP_SPT menahan sambungan sampai tunggakannya lunas — menurunkannya
+/// ke TUTUP_SEMENTARA membuka jalan reaktivasi tanpa pelunasan, jadi hanya
+/// bukti eksplisit (kosakata r-nomor/ProgresCater) yang boleh mengubahnya,
+/// tidak pernah tebakan. Dipakai step 11 selain oleh resolvePelangganStatus.
+export function statusTerminal(status: StatusPelanggan): boolean {
+  return TERMINAL_STATUSES.has(status)
+}
+
+/// Dialek ProgresCater.mutasinama. Nilai di luar kosakata yang sudah
+/// teraudit sengaja return null, BUKAN ditebak — caller tidak akan
+/// mengubah status kalau null.
 export function mapMutasiNamaToStatus(
   raw: string | null | undefined
 ): StatusPelanggan | null {
   const v = (raw ?? "").trim().toLowerCase()
   if (v === "pelanggan aktif") return "AKTIF"
-  if (v === "tupsp" || v === "tupsm") return "TUTUP_SEMENTARA"
+  if (v === "tupsm") return "TUTUP_SEMENTARA"
+  if (v === "tupsp") return "TUTUP_SPT"
+  return null
+}
+
+/// Dialek r-nomor.jenis_pemutusan — kata beda, konsep sama dengan di atas.
+/// Dipakai step 11 untuk pelanggan yang hilang dari ProgresCater. Null =
+/// nomornya tidak ada di r-nomor mana pun; jenisnya TIDAK boleh ditebak,
+/// pemanggil wajib menandainya untuk ditinjau petugas.
+export function mapJenisPemutusanToStatus(
+  raw: string | null | undefined
+): StatusPelanggan | null {
+  const v = (raw ?? "").trim().toUpperCase()
+  if (v === "TSM") return "TUTUP_SEMENTARA"
+  if (v === "SPT") return "TUTUP_SPT"
   return null
 }
 

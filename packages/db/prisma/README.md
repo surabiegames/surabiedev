@@ -1,5 +1,10 @@
 # Prisma Schema — tirtacater / mytirta
 
+> **Baca dulu: [`PEMETAAN-DATA.md`](./PEMETAAN-DATA.md)** — hubungan antar
+> keempat CSV sumber, rekonstruksi tarif (22.523/22.523 tagihan terbukti bisa
+> dihitung ulang), aturan `pakai_drd` vs selisih stand, dan apa yang masih
+> kurang sebelum data ini boleh dipakai sebagai dasar tagihan resmi.
+
 Schema ini dipecah per-domain (multi-file Prisma schema, GA sejak Prisma ORM ≥6.7,
 dipakai di sini dengan **Prisma v7**). `schema.prisma` di folder ini hanya berisi
 `generator` + `datasource` — wajib ada di folder schema saat multi-file dipakai.

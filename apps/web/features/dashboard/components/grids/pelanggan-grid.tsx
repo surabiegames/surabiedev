@@ -35,7 +35,6 @@ const KOLOM: ColDef[] = [
       TUTUP_SEMENTARA: { label: "Tutup sementara", nada: "amber" },
       DISEGEL: { label: "Disegel", nada: "merah" },
       TUTUP_SPT: { label: "Tutup SPT", nada: "merah" },
-      CABUT_PERMANEN: { label: "Cabut permanen", nada: "netral" },
     }),
   },
 ]

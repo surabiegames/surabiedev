@@ -8,19 +8,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Field } from '@/components/ui/field';
+import { Text as UIText } from '@/components/ui/text';
+import { AppDialog } from '@/components/ui/app-dialog';
+import { Badge } from '@/components/ui/badge';
 import {
-  Alert,
   AppScaffold,
-  Badge,
-  Button,
-  Card,
-  Dialog,
   MasterPalette as P,
   SectionHeader,
   StatusBadge,
-  TextField,
   useTheme,
-} from '@workspace/mobile-ui';
+} from '@/components';
 import { ApiException, formatRupiah, labelStatusPelanggan } from '@workspace/mobile-core';
 
 import { PratinjauPelanggan } from './pratinjau-pelanggan';
@@ -106,9 +108,14 @@ export function KelolaLanggananScreen() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           {galatMuat != null ? (
             <>
-              <Alert variant="destructive" title="Gagal memuat" description={galatMuat} />
+              <Alert icon={TriangleAlert} variant="destructive">
+                <AlertTitle>Gagal memuat</AlertTitle>
+                <AlertDescription>{galatMuat}</AlertDescription>
+              </Alert>
               <View style={styles.retry}>
-                <Button variant="outline" onPress={() => muat()}>Coba lagi</Button>
+                <Button variant="outline" onPress={() => muat()} className="h-11 w-full">
+                  <UIText>Coba lagi</UIText>
+                </Button>
               </View>
             </>
           ) : data == null ? (
@@ -135,7 +142,7 @@ export function KelolaLanggananScreen() {
                 Berlangganan lebih dari satu sambungan? Tautkan nomornya di sini supaya semuanya tampil di beranda.
               </Text>
               <View style={styles.tambahForm}>
-                <TextField
+                <Field
                   value={nomorBaru}
                   onChangeText={(t) => {
                     setNomorBaru(t.replace(/\D/g, '').slice(0, 11));
@@ -146,13 +153,13 @@ export function KelolaLanggananScreen() {
                   error={galatTambah}
                 />
                 <PratinjauPelanggan nomor={nomorBaru} />
-                <Button
-                  onPress={tambah}
-                  loading={menambah}
-                  disabled={nomorBaru.length !== 11}
-                  leading={menambah ? undefined : <Ionicons name="add" size={18} color={colors.primaryForeground} />}
-                >
-                  {menambah ? 'Menautkan…' : 'Tautkan Nomor Ini'}
+                <Button onPress={tambah} disabled={menambah || nomorBaru.length !== 11} className="h-11 w-full">
+                  {menambah ? (
+                    <ActivityIndicator size="small" color={colors.primaryForeground} />
+                  ) : (
+                    <Ionicons name="add" size={18} color={colors.primaryForeground} />
+                  )}
+                  <UIText>{menambah ? 'Menautkan…' : 'Tautkan Nomor Ini'}</UIText>
                 </Button>
               </View>
             </>
@@ -160,7 +167,7 @@ export function KelolaLanggananScreen() {
         </ScrollView>
       }
     >
-      <Dialog
+      <AppDialog
         visible={hapusTarget != null}
         onDismiss={() => setHapusTarget(null)}
         title="Lepas Tautan Langganan?"
@@ -171,17 +178,25 @@ export function KelolaLanggananScreen() {
         }
         actions={
           <>
-            <Button variant="destructive" onPress={() => hapusTarget && hapus(hapusTarget)}>Lepas Tautan</Button>
-            <Button variant="outline" onPress={() => setHapusTarget(null)}>Batal</Button>
+            <Button variant="destructive" onPress={() => hapusTarget && hapus(hapusTarget)} className="h-11 w-full">
+              <UIText>Lepas Tautan</UIText>
+            </Button>
+            <Button variant="outline" onPress={() => setHapusTarget(null)} className="h-11 w-full">
+              <UIText>Batal</UIText>
+            </Button>
           </>
         }
       />
-      <Dialog
+      <AppDialog
         visible={galatDialog != null}
         onDismiss={() => setGalatDialog(null)}
         title="Gagal"
         description={galatDialog ?? ''}
-        actions={<Button onPress={() => setGalatDialog(null)}>Tutup</Button>}
+        actions={
+          <Button onPress={() => setGalatDialog(null)} className="h-11 w-full">
+            <UIText>Tutup</UIText>
+          </Button>
+        }
       />
     </AppScaffold>
   );
@@ -203,12 +218,12 @@ function BarisLangganan({
   const { colors } = useTheme();
   const adaTunggakan = l.totalTunggakan > 0;
   return (
-    <Card style={styles.baris}>
+    <Card className="gap-0" style={styles.baris}>
       <View style={styles.barisTop}>
         <View style={styles.barisInfo}>
           <View style={styles.namaRow}>
             <Text style={[styles.nama, { color: colors.foreground }]} numberOfLines={1}>{l.nama}</Text>
-            {l.isUtama ? <Badge>Utama</Badge> : null}
+            {l.isUtama ? <Badge><UIText>Utama</UIText></Badge> : null}
           </View>
           <Text style={[styles.nomor, { color: colors.mutedForeground }]}>{l.nomorLangganan}</Text>
           <Text style={[styles.alamat, { color: colors.mutedForeground }]} numberOfLines={1}>{l.alamatLengkap}</Text>
@@ -229,9 +244,11 @@ function BarisLangganan({
         </Text>
         <View style={styles.barisAksi}>
           {onJadikanUtama != null ? (
-            <Button variant="ghost" block={false} disabled={sibuk} onPress={onJadikanUtama}>Jadikan Utama</Button>
+            <Button variant="ghost" disabled={sibuk} onPress={onJadikanUtama} className="h-9">
+              <UIText>Jadikan Utama</UIText>
+            </Button>
           ) : null}
-          <Button variant="ghost" block={false} disabled={sibuk || !bisaHapus} onPress={onHapus}>
+          <Button variant="ghost" size="icon" disabled={sibuk || !bisaHapus} onPress={onHapus} className="h-9 w-9">
             {sibuk ? (
               <ActivityIndicator size="small" color={colors.destructive} />
             ) : (

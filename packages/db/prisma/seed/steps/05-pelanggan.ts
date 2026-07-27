@@ -1,7 +1,12 @@
-// prisma/seed/steps/05-pelanggan.ts — Pelanggan dari ProgresCater (sumber
-// utama, ~22.523 baris) + PBPK (pelanggan baru yang belum ada di
-// ProgresCater bulan ini, 11 baris, TERVERIFIKASI 0 nolg tumpang-tindih
-// dengan ProgresCater).
+// prisma/seed/steps/05-pelanggan.ts — Pelanggan dari ProgresCater, dan
+// HANYA dari ProgresCater.
+//
+// Dulu file ini juga membaca PBPK (sambungan baru bulan berjalan) dan
+// r-nomor (pelanggan yang dicabut, dilengkapi nama/alamat dari lapdatameter).
+// Keduanya sudah dihapus: PBPK masuk lewat /dashboard/pbpk di akhir siklus
+// pencatatan, dan pemutusan lewat layarnya sendiri menjelang closing —
+// keduanya kejadian bulanan, bukan bahan serah terima. Lihat catatan panjang
+// di seed/index.ts.
 //
 // DUA ATURAN KESELAMATAN DATA yang WAJIB dijaga di file ini:
 //
@@ -19,10 +24,10 @@
 //    sekali ke object update (Prisma cuma menyentuh key yang eksplisit
 //    ada).
 
-import type { Prisma } from "@/app/generated/prisma"
+import type { Prisma } from "../../../generated/client"
 import type { PrismaClientLike } from "../lib/db"
 import type { SeedReport } from "../lib/report"
-import { readProgresCater, readPbpk } from "../lib/csv"
+import { readProgresCater } from "../lib/csv"
 import {
   normalizeNolg,
   normalizeRtRw,
@@ -30,11 +35,10 @@ import {
   normalizeGolonganTarif,
   normalizeStatusPasokanAir,
   parseTimeOfDay,
-  parseIntOrNull,
-  parseExcelSerial,
   trimOrNull,
 } from "../lib/normalize"
 import { mapMutasiNamaToStatus, resolvePelangganStatus } from "../lib/status"
+import { saringPerubahan, type KolomTerjaga } from "../../../asal-usul"
 
 const STEP = "05-pelanggan"
 
@@ -76,10 +80,16 @@ async function loadRefCaches(prisma: PrismaClientLike): Promise<RefCaches> {
 
 export async function seedPelanggan(prisma: PrismaClientLike, report: SeedReport): Promise<void> {
   const caches = await loadRefCaches(prisma)
-
   await seedFromProgresCater(prisma, report, caches)
-  await seedFromPbpk(prisma, report, caches)
 }
+
+/// Sama seperti step 06: lookup di-preload sekali dan baris diproses
+/// berkelompok secara paralel. Versi lama melakukan findUnique + upsert
+/// BERURUTAN per baris (~45.000 round-trip untuk 22.523 baris) — terukur
+/// masih berjalan setelah 11 menit. Aman diparalelkan karena `nolg`
+/// terverifikasi unik di ProgresCater: tidak ada dua baris menyentuh
+/// pelanggan yang sama.
+const KONKURENSI = 16
 
 async function seedFromProgresCater(
   prisma: PrismaClientLike,
@@ -87,8 +97,33 @@ async function seedFromProgresCater(
   caches: RefCaches
 ): Promise<void> {
   const rows = readProgresCater()
+  // Potret keadaan SEBELUM step ini jalan, termasuk asal-usul tiap kolom.
+  // Potret (bukan pembacaan per baris) sudah memadai: seluruh baris di step
+  // ini bersumber sama (PROGRES_CATER), dan sesama sumber berperingkat sama
+  // memang boleh saling menimpa — periode yang lebih baru menang, persis
+  // yang diinginkan karena rows tersusun kronologis jan->juni.
+  const dbAwal = new Map(
+    (
+      await prisma.pelanggan.findMany({
+        select: {
+          nomorLangganan: true,
+          status: true,
+          nama: true,
+          alamat: true,
+          rt: true,
+          rw: true,
+          notelp: true,
+          tarifGolonganId: true,
+          sumberKolom: true,
+        },
+      })
+    ).map((p) => [p.nomorLangganan, p])
+  )
+  /// Kolom yang ditolak karena kalah peringkat — diringkas sekali di akhir,
+  /// bukan satu warning per baris (bisa ribuan).
+  const tertolak = new Map<string, number>()
 
-  for (const [i, row] of rows.entries()) {
+  async function prosesBaris(row: (typeof rows)[number], i: number): Promise<void> {
     const nomorLangganan = normalizeNolg(row.nolg)
     if (!nomorLangganan) {
       report.warn(STEP, `nolg tidak valid: ${JSON.stringify(row.nolg)}, baris dilewati`, {
@@ -96,7 +131,7 @@ async function seedFromProgresCater(
         key: row.nolg,
       })
       report.skipped(STEP)
-      continue
+      return
     }
 
     const nomorPersil = trimOrNull(row.nprs)
@@ -107,28 +142,26 @@ async function seedFromProgresCater(
         key: nomorLangganan,
       })
       report.skipped(STEP)
-      continue
+      return
     }
 
-    const existing = await prisma.pelanggan.findUnique({
-      where: { nomorLangganan },
-      select: { id: true, status: true },
-    })
+    const barisDb = dbAwal.get(nomorLangganan) ?? null
+    const existing = barisDb?.status ?? null
 
     const mutasiNamaStatus = mapMutasiNamaToStatus(row.mutasinama)
     const resolution = resolvePelangganStatus({
-      existingStatus: existing?.status ?? null,
+      existingStatus: existing,
       mutasiNamaStatus,
     })
     if (resolution.changed) {
       report.statusChange({
         nomorLangganan,
-        from: existing?.status ?? null,
+        from: existing,
         to: resolution.status,
         reason: resolution.reason,
       })
     }
-    if (!existing && mutasiNamaStatus === null) {
+    if (existing === null && mutasiNamaStatus === null) {
       report.warn(
         STEP,
         `mutasinama "${row.mutasinama}" tidak dikenali untuk pelanggan baru ${nomorLangganan} -> default AKTIF`,
@@ -139,23 +172,37 @@ async function seedFromProgresCater(
     // Field yang SELALU ada di tiap baris ProgresCater -> aman selalu di-set.
     const alwaysPresent: Prisma.PelangganUncheckedUpdateInput = {
       nomorPersil,
-      nama,
-      alamat,
       status: resolution.status,
     }
 
+    // KOLOM TERJAGA tidak ditulis langsung lagi. ProgresCater berperingkat
+    // PALING RENDAH untuk identitas & alamat — ia terbukti merusak spasi
+    // ("JL.MERDEKANO 51"), sedangkan master STI menyimpannya utuh. Yang
+    // lolos saringan hanya kolom yang belum pernah diisi sumber yang lebih
+    // tepercaya. Lihat packages/db/asal-usul.ts.
+    const usulan: Partial<Record<KolomTerjaga, unknown>> = { nama, alamat }
     const rt = normalizeRtRw(row.rt)
-    if (rt !== null) alwaysPresent.rt = rt
+    if (rt !== null) usulan.rt = rt
     const rw = normalizeRtRw(row.rw)
-    if (rw !== null) alwaysPresent.rw = rw
+    if (rw !== null) usulan.rw = rw
     const notelp = normalizePhone(row.notelp)
-    if (notelp !== null) alwaysPresent.notelp = notelp
+    if (notelp !== null) usulan.notelp = notelp
 
     const golonganTarifKode = normalizeGolonganTarif(row.trp)
     if (golonganTarifKode) {
       const id = caches.tarifGolongan.get(golonganTarifKode)
-      if (id) alwaysPresent.tarifGolonganId = id
+      if (id) usulan.tarifGolonganId = id
     }
+
+    const saring = saringPerubahan({
+      usulan,
+      sumber: "PROGRES_CATER",
+      nilaiLama: barisDb ?? {},
+      asalUsulLama: barisDb?.sumberKolom ?? null,
+    })
+    Object.assign(alwaysPresent, saring.data)
+    alwaysPresent.sumberKolom = saring.asalUsul
+    for (const kolom of saring.ditolak) tertolak.set(kolom, (tertolak.get(kolom) ?? 0) + 1)
     const seksiCaterId = caches.seksiCater.get(row.caterseksikode.trim())
     if (seksiCaterId) alwaysPresent.seksiCaterId = seksiCaterId
     const ruteId = caches.rute.get(row.rute_kode.trim())
@@ -202,120 +249,50 @@ async function seedFromProgresCater(
     // ada di PBPK) — sengaja tidak disentuh di sini, lihat komentar atas
     // file soal "jangan null-kan field yang tidak dibawa sumber ini".
 
+    // Cabang CREATE tidak boleh memakai hasil saringan. Saringan menjawab
+    // "boleh menimpa nilai yang sudah ada?", dan pada baris yang belum ada
+    // tidak ada yang perlu dilindungi — nama & alamat justru WAJIB terisi.
+    // Prisma memvalidasi payload create walau cabang itu tidak dieksekusi,
+    // jadi tanpa ini seluruh baris yang alamatnya ditolak akan gagal dengan
+    // "Argument `nama` is missing".
+    const create: Prisma.PelangganUncheckedCreateInput = {
+      ...(alwaysPresent as Prisma.PelangganUncheckedCreateInput),
+      nomorLangganan,
+      nama,
+      alamat,
+      sumberKolom: {
+        nama: "PROGRES_CATER",
+        alamat: "PROGRES_CATER",
+        ...(rt !== null ? { rt: "PROGRES_CATER" } : {}),
+        ...(rw !== null ? { rw: "PROGRES_CATER" } : {}),
+        ...(notelp !== null ? { notelp: "PROGRES_CATER" } : {}),
+      },
+    }
+
     try {
       await prisma.pelanggan.upsert({
         where: { nomorLangganan },
-        create: { nomorLangganan, ...alwaysPresent } as Prisma.PelangganUncheckedCreateInput,
+        create,
         update: alwaysPresent,
       })
-      existing ? report.updated(STEP) : report.created(STEP)
+      existing !== null ? report.updated(STEP) : report.created(STEP)
     } catch (err) {
       report.error(STEP, `Gagal upsert Pelanggan ${nomorLangganan}: ${(err as Error).message}`, {
         key: nomorLangganan,
       })
     }
   }
-}
 
-async function seedFromPbpk(
-  prisma: PrismaClientLike,
-  report: SeedReport,
-  caches: RefCaches
-): Promise<void> {
-  const rows = readPbpk()
+  for (let mulai = 0; mulai < rows.length; mulai += KONKURENSI) {
+    const kelompok = rows.slice(mulai, mulai + KONKURENSI)
+    await Promise.all(kelompok.map((row, n) => prosesBaris(row, mulai + n)))
+  }
 
-  for (const row of rows) {
-    const nomorLangganan = normalizeNolg(row.nolg)
-    if (!nomorLangganan) {
-      report.warn(STEP, `PBPK: nolg tidak valid ${JSON.stringify(row.nolg)}, baris dilewati`, {
-        key: row.nolg,
-      })
-      report.skipped(STEP)
-      continue
-    }
-
-    const existing = await prisma.pelanggan.findUnique({
-      where: { nomorLangganan },
-      select: { id: true },
-    })
-    if (existing) {
-      // Sudah ada dari ProgresCater — PBPK cuma sumber untuk pelanggan
-      // BARU. Jangan overwrite data yang sudah lebih lengkap dari
-      // ProgresCater dengan data PBPK yang lebih minim.
-      report.unchanged(STEP)
-      continue
-    }
-
-    const nama = trimOrNull(row.nama)
-    const alamat = trimOrNull(row.alamat)
-    const nomorPersil = trimOrNull(row.nolangganan) ?? nomorLangganan
-    if (!nama || !alamat) {
-      report.warn(STEP, `PBPK: nama/alamat kosong untuk nolg ${nomorLangganan}, baris dilewati`, {
-        key: nomorLangganan,
-      })
-      report.skipped(STEP)
-      continue
-    }
-
-    const data: Prisma.PelangganUncheckedCreateInput = {
-      nomorLangganan,
-      nomorPersil,
-      nama,
-      alamat,
-      status: "AKTIF", // pelanggan baru pasang, belum ada sinyal status lain
-    }
-
-    const rt = normalizeRtRw(row.rt)
-    if (rt !== null) data.rt = rt
-    const rw = normalizeRtRw(row.rw)
-    if (rw !== null) data.rw = rw
-    const notelp = normalizePhone(row.notelp)
-    if (notelp !== null) data.notelp = notelp
-    const jumlahPenghuni = parseIntOrNull(row.jmlpenghuni)
-    if (jumlahPenghuni !== null) data.jumlahPenghuni = jumlahPenghuni
-
-    const golonganTarifKode = normalizeGolonganTarif(row.kd_goltarif)
-    if (golonganTarifKode) {
-      const id = caches.tarifGolongan.get(golonganTarifKode)
-      if (id) data.tarifGolonganId = id
-    }
-    const ruteId = caches.rute.get(row.kd_rute.trim())
-    if (ruteId) data.ruteId = ruteId
-
-    // kd_kecamatan/kd_kelurahan di PBPK pakai format kode yang SAMA
-    // dengan kdkec/kdkel ProgresCater (terverifikasi pola "XX"/"XXn").
-    const kecamatanId = caches.kecamatan.get(row.kd_kecamatan.trim())
-    if (kecamatanId) data.kecamatanId = kecamatanId
-    const kelurahanId = caches.kelurahan.get(row.kd_kelurahan.trim())
-    if (kelurahanId) data.kelurahanId = kelurahanId
-
-    const geoLong = Number(row.geo_long)
-    const geoLat = Number(row.goe_lat)
-    if (row.geo_long.trim() && Number.isFinite(geoLong)) data.geoLong = geoLong
-    if (row.goe_lat.trim() && Number.isFinite(geoLat)) data.geoLat = geoLat
-
-    try {
-      await prisma.pelanggan.create({ data })
-      report.created(STEP)
-      report.statusChange({
-        nomorLangganan,
-        from: null,
-        to: "AKTIF",
-        reason: "pelanggan baru dari PBPK (pasang baru/pindah kontrak)",
-      })
-    } catch (err) {
-      report.error(STEP, `Gagal create Pelanggan (PBPK) ${nomorLangganan}: ${(err as Error).message}`, {
-        key: nomorLangganan,
-      })
-      continue
-    }
-
-    // tglaktif (Excel serial) dipakai di step Mutasi (08), bukan di sini
-    // — cukup validasi bisa diparse supaya kalau gagal ketahuan sejak awal.
-    if (!parseExcelSerial(row.tglaktif)) {
-      report.warn(STEP, `PBPK: tglaktif ${row.tglaktif} tidak bisa diparse untuk ${nomorLangganan}`, {
-        key: nomorLangganan,
-      })
-    }
+  if (tertolak.size > 0) {
+    const rincian = [...tertolak].map(([k, n]) => `${k}: ${n}`).join(", ")
+    report.warn(
+      STEP,
+      `Perubahan dari ProgresCater DITOLAK karena kolomnya sudah diisi sumber yang lebih tepercaya — ${rincian}. Ini yang diharapkan, bukan galat: lihat packages/db/asal-usul.ts.`
+    )
   }
 }

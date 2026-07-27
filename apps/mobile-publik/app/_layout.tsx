@@ -4,12 +4,14 @@
 // beranda pertama tampil — supaya kartu akun tidak "berkedip" dari keluar ke
 // masuk setelah render pertama. Login TETAP opsional: gagal/tak ada token
 // hanya berarti beranda tampil anonim (bukan diarahkan ke layar masuk).
+import '../global.css';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider } from '@workspace/mobile-ui';
+import { PortalHost } from '@rn-primitives/portal';
+import { ThemeProvider } from '@/components';
 import { SesiWarga } from '@workspace/mobile-core';
 import 'react-native-reanimated';
 
@@ -43,6 +45,8 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
         </Stack>
       </ThemeProvider>
+      {/* Root portal untuk overlay react-native-reusables (Dialog/Select/Menu). */}
+      <PortalHost />
     </SafeAreaProvider>
   );
 }

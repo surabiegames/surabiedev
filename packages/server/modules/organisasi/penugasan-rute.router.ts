@@ -16,13 +16,13 @@ import { getNotifier } from "../notifikasi/notifier"
 export const penugasanRuteRouter = new Hono()
 
 // Jumlah pelanggan (target pencatatan) per rute — filter SAMA dengan
-// rute-saya: sambungan yang tidak dikunjungi lagi (CABUT_PERMANEN) & soft
-// delete tidak dihitung.
+// rute-saya: hanya soft delete yang tidak dihitung. Tidak ada status yang
+// mengeluarkan sambungan dari beban kerja (lihat catatan di rute-saya).
 async function targetPerRute(ruteIds: string[]): Promise<Map<string, number>> {
   if (ruteIds.length === 0) return new Map()
   const grup = await prisma.pelanggan.groupBy({
     by: ["ruteId"],
-    where: { ruteId: { in: ruteIds }, deletedAt: null, status: { not: "CABUT_PERMANEN" } },
+    where: { ruteId: { in: ruteIds }, deletedAt: null },
     _count: { _all: true },
   })
   return new Map(grup.map((g) => [g.ruteId as string, g._count._all]))

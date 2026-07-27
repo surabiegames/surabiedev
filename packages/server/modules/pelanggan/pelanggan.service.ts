@@ -4,6 +4,7 @@
 // spatial.ts, dan audit trail utk create/update/delete/restore.
 import type { Prisma } from "@workspace/db"
 import { prisma } from "@workspace/db"
+import { bacaAsalUsul, KOLOM_TERJAGA } from "@workspace/db/asal-usul"
 import { NotFoundError, ConflictError } from "../../lib/errors"
 import { GEO, setPoint, clearPoint, getPointGeoJson, getPointGeoJsonMany, findNearby, type GeoJsonPoint } from "../../lib/spatial"
 import { recordAudit, auditMetaFromRequest } from "../../lib/audit"
@@ -125,6 +126,19 @@ export async function updatePelanggan(id: string, input: UpdatePelangganInput, r
   const { koordinat, jamGilirMulai, jamGilirSelesai, ...rest } = input
   const { ipAddress, userAgent } = auditMetaFromRequest(req)
 
+  // Suntingan lewat layar adalah keputusan MANUSIA — peringkat tertinggi di
+  // packages/db/asal-usul.ts. Menandainya di sini yang membuat koreksi
+  // petugas tidak dikembalikan oleh impor ProgresCater/master berikutnya.
+  // Tidak lewat saringPerubahan: manusia tidak pernah kalah peringkat, jadi
+  // yang perlu hanyalah mencatat kolom terjaga mana yang benar-benar dikirim.
+  const asalUsul = bacaAsalUsul(existing.sumberKolom)
+  let adaKolomTerjaga = false
+  for (const kolom of KOLOM_TERJAGA) {
+    if (rest[kolom as keyof typeof rest] === undefined) continue
+    asalUsul[kolom] = "MANUSIA"
+    adaKolomTerjaga = true
+  }
+
   const row = await prisma.$transaction(async (tx) => {
     const row = await tx.pelanggan.update({
       where: { id },
@@ -133,6 +147,7 @@ export async function updatePelanggan(id: string, input: UpdatePelangganInput, r
         jamGilirMulai: jamGilirMulai === undefined ? undefined : jamGilirMulai ? parseTimeOfDay(jamGilirMulai) : null,
         jamGilirSelesai: jamGilirSelesai === undefined ? undefined : jamGilirSelesai ? parseTimeOfDay(jamGilirSelesai) : null,
         lastEditorId: requester.id,
+        ...(adaKolomTerjaga ? { sumberKolom: asalUsul } : {}),
       },
     })
     if (koordinat !== undefined) {

@@ -1,0 +1,1995 @@
+{
+  "startedAt": "2026-07-26T01:18:58.341Z",
+  "finishedAt": "2026-07-26T01:26:45.707Z",
+  "counts": {
+    "05-pelanggan": {
+      "created": 0,
+      "updated": 135197,
+      "unchanged": 89,
+      "skipped": 0
+    }
+  },
+  "statusChanges": [
+    {
+      "nomorLangganan": "00005601803",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00009001379",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00009001848",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00102000530",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401200330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401300870",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401300945",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00402100420",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00402300680",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00402300690",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404100077",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404100600",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404300425",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404800021",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00405150030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000583",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000953",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406150314",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00407100670",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00407200725",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00407220072",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00703500275",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00704200550",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00800300640",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00800300730",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00800600610",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00802300150",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00803300270",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804200300",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804500350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804600590",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00805700510",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00805800495",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00806200370",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00806300060",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00900100420",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00900700605",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00900900719",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901051015",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901250530",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901320509",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901330102",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901700305",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00902400525",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00902500750",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903200001",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903300400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903330030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000684",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000837",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904211000",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620266",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620280",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620451",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904650399",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904670160",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904680360",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904680405",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904690085",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730280",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730285",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730300",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730305",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904810330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820177",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820453",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904821235",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904830245",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900231",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900612",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904911890",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905020115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905100085",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905200510",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906400668",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906500278",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906550080",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906590618",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220340",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220360",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220370",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820170",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820180",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00102000530",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401200330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401300870",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401300945",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00402100420",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00402300680",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404100077",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404100600",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404300425",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404800021",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00405150030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000583",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000953",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406150314",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00407100670",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00407220072",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00703500275",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00704200550",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00800300640",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00800300730",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00800600610",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00803300270",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804200300",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804500350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804600590",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00805800495",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00806200370",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00806300060",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00900100420",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00900700605",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00900900719",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901051015",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901250530",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901320509",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901330102",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901700305",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00902500750",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903300400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903330030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000684",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000837",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904211000",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620266",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620280",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620451",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904650399",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904670160",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904680405",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904690085",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904810330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820177",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820453",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904821235",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904830245",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900231",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900612",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904911890",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905020115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905100085",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905200510",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906400668",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906500278",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906550080",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906590618",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220340",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220360",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220370",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820170",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820180",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401200330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00401300870",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00402100420",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404300425",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00405150030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000583",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000953",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406150314",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00407220072",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00703500275",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00704200550",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00800300640",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804200300",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804500350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00900900719",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901051015",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901250530",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901320509",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901330102",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901700305",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00902500750",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903300400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903330030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000684",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000837",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620266",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620280",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620451",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904650399",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904670160",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904680405",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904690085",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904810330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820177",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820453",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904821235",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904830245",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900231",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900612",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904911890",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905020115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905200510",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906500278",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00906550080",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220340",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220360",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220370",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820170",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820180",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00402100420",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404300425",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00405150030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000583",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000953",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00407220072",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00703500275",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804200300",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901051015",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901250530",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901700305",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903300400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000684",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000837",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620266",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620280",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620451",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904650399",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904680405",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904810330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820177",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820453",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904821235",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904830245",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900231",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905020115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905200510",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220340",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220360",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220370",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820170",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820180",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00404300425",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00405150030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00406000953",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00703500275",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00804200300",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901051015",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00901700305",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00903300400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000684",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000837",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620266",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620280",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904620451",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904650399",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904680405",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904810330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820177",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820453",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904830245",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900231",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905020115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905200510",
+      "from": "TUTUP_SEMENTARA",
+      "to": "AKTIF",
+      "reason": "mutasinama pada periode ini menyatakan AKTIF (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220330",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220340",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220350",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220360",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220370",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908220400",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820170",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00908820180",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00405150030",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000684",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904000837",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904650399",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904730115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904820177",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904830245",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00904900231",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00905020115",
+      "from": "TUTUP_SEMENTARA",
+      "to": "TUTUP_SPT",
+      "reason": "mutasinama pada periode ini menyatakan TUTUP_SPT (sebelumnya TUTUP_SEMENTARA)"
+    },
+    {
+      "nomorLangganan": "00009001848",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202602 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00407200725",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202602 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00802300150",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202602 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00102000530",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00401300945",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00402300680",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00404100600",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00404800021",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00407100670",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00800300730",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00800600610",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00803300270",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00804600590",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00805800495",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00806200370",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00806300060",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00900100420",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00900700605",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904211000",
+      "from": "AKTIF",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202603 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00901320509",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202604 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00903330030",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202604 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904670160",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202604 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904900612",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202604 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00906500278",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202604 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00906550080",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202604 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00703500275",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904620266",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904620451",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904680405",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904810330",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00904820453",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908220330",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908220340",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908220350",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908220360",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908220370",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908220400",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908820170",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    },
+    {
+      "nomorLangganan": "00908820180",
+      "from": "TUTUP_SPT",
+      "to": "TUTUP_SEMENTARA",
+      "reason": "hilang dari ProgresCater 202606 TAPI tidak ada di r-nomor mana pun — jenis pencabutan PERLU DITINJAU"
+    }
+  ],
+  "pemutusanNeedsReview": [],
+  "issues": [
+    {
+      "step": "11-daftar-catat",
+      "level": "warn",
+      "message": "Aritmetika daftar catat per periode — 202601: 22575 = ditagih 22549 + dicabut 0 + PBPK 26 | 202602: 22583 = ditagih 22551 + dicabut 24 + PBPK 8 | 202603: 22564 = ditagih 22532 + dicabut 27 + PBPK 5 | 202604: 22552 = ditagih 22527 + dicabut 10 + PBPK 15 | 202605: 22553 = ditagih 22523 + dicabut 19 + PBPK 11 | 202606: 22539 = ditagih 22515 + dicabut 19 + PBPK 5"
+    },
+    {
+      "step": "11-daftar-catat",
+      "level": "warn",
+      "message": "80 pelanggan hilang dari ProgresCater tanpa baris r-nomor — status diset TUTUP_SEMENTARA, jenis pencabutan WAJIB ditinjau petugas: 00009001848, 00009201161, 00404100461, 00401400105, 00402600120, 00402900115, 00402900281, 00403700590, 00403900295, 00404700380, 00406050327, 00407200725, 00800100630, 00801200779, 00802200810, 00802300150, 00804300250, 00804700440, 00804900480, 00901010197 … (+60 lagi)"
+    }
+  ]
+}

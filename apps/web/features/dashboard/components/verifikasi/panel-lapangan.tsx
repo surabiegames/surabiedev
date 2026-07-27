@@ -24,7 +24,10 @@ import { HistoriPemakaian } from "./histori-pemakaian";
 import { PetaLokasi } from "./peta-lokasi";
 import { ModalLapangan } from "./modal-lapangan";
 
-export type AksiLapangan = "v1" | "cekulang";
+/// v2/v3 memakai modal yang SAMA dengan v1. Sengaja bukan modal terpisah:
+/// koreksi yang boleh dilakukan ketiganya identik, dan dua formulir untuk
+/// satu pekerjaan selalu berujung pada salah satunya ketinggalan diperbarui.
+export type AksiLapangan = "v1" | "v2" | "v3" | "cekulang";
 
 /// Baris progres ring V1/V2/V3 — penampil murni. Warna per ring SAMA dengan
 /// ceklis kolom V1/V2/V3 di tabel (WARNA_RING di verifikasi-lapangan.tsx):
@@ -178,10 +181,23 @@ export function PanelLapangan({
     detail.persentase != null && Math.abs(detail.persentase) > ambangAnomali;
   // Modal hanya relevan bila laporan masih bisa diproses; menu klik kanan
   // sudah menyaring, ini pagar kedua bila data berubah di antaranya.
-  const bisaModal =
-    aksi === "cekulang"
-      ? !detail.pembacaanId
-      : !detail.pembacaanId && !detail.verif1At && !!detail.pelanggan;
+  //
+  // SYARATNYA PER RING. Versi sebelumnya memakai satu syarat `!verif1At`
+  // untuk semua aksi verifikasi — akibatnya begitu V1 selesai, memilih
+  // "Verifikasi V2" memang mengubah state tapi modalnya tidak pernah
+  // dirender: tombol hidup, tidak terjadi apa-apa. Tiap ring punya
+  // prasyaratnya sendiri, persis seperti yang ditegakkan server.
+  const bisaModal = (() => {
+    // Sudah jadi pembacaan resmi: tidak ada ring yang tersisa, dan cek
+    // ulang pun harus lewat "Batalkan V3" dulu.
+    if (detail.pembacaanId) return false;
+    if (aksi === "cekulang") return true;
+    if (!detail.pelanggan) return false;
+    if (aksi === "v1") return !detail.verif1At;
+    if (aksi === "v2") return !!detail.verif1At && !detail.verif2At;
+    if (aksi === "v3") return !!detail.verif1At && !!detail.verif2At && !detail.verif3At;
+    return false;
+  })();
 
   return (
     <div className="flex flex-col gap-3.5 p-4">
@@ -329,6 +345,7 @@ export function PanelLapangan({
           detail={detail}
           meters={meters}
           meterAwal={meterAwal}
+          ring={aksi === "v2" ? 2 : aksi === "v3" ? 3 : 1}
           tolakAwal={aksi === "cekulang"}
           onTutup={onTutupAksi}
           onSelesai={() => {

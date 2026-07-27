@@ -10,7 +10,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { Card, useTheme } from '@workspace/mobile-ui';
+import { Card } from '@/components/ui/card';
+import { useTheme } from '@/components';
 import { ApiException } from '@workspace/mobile-core';
 
 import { buatLanggananWargaRepository, type PelangganRingkas } from './repository';
@@ -77,7 +78,7 @@ export function PratinjauPelanggan({ nomor }: { nomor: string }) {
   if (hasil == null) return null;
 
   return (
-    <Card style={styles.kartu}>
+    <Card className="gap-0" style={styles.kartu}>
       <View style={styles.kartuRow}>
         <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
         <View style={styles.kartuTeks}>

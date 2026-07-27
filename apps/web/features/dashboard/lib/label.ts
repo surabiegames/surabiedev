@@ -8,7 +8,6 @@ export const LABEL_STATUS_PELANGGAN: Record<string, string> = {
   TUTUP_SEMENTARA: "Tutup sementara",
   DISEGEL: "Disegel",
   TUTUP_SPT: "Tutup SPT",
-  CABUT_PERMANEN: "Cabut permanen",
 }
 
 export const LABEL_STATUS_LAPORAN_MANDIRI: Record<string, string> = {
@@ -75,6 +74,7 @@ export const LABEL_ROLE: Record<string, string> = {
   MANAGER: "Manager",
   SUPERVISOR: "Supervisor",
   STAFF: "Staf",
+  PELAKSANA: "Pelaksana (petugas lapangan)",
   USER: "Pelanggan",
 }
 

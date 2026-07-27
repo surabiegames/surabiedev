@@ -18,7 +18,7 @@ import {
   StatusBadge,
   toneStatusPengaduan,
   useTheme,
-} from '@workspace/mobile-ui';
+} from '@/components';
 import {
   ApiException,
   labelDari,

@@ -5,7 +5,7 @@
  */
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet } from 'react-native';
-import { AppScaffold } from '@workspace/mobile-ui';
+import { AppScaffold } from '@/components';
 
 import { tandaiSesiBerubah } from '../shared/sesi-store';
 import { MasukWargaForm } from './masuk-form';

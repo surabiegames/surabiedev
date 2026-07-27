@@ -22,7 +22,9 @@ import { NotFoundError, ConflictError, BadRequestError, ForbiddenError, isPrisma
 import { paginationQuerySchema, buildSkipTake, buildMeta, buildOrderBy, sortQuery } from "../../lib/pagination"
 import { periodeToDate, dateToPeriode } from "../../lib/periode"
 import { simpanBerkas, BerkasTidakValidError } from "../../lib/storage"
+import { usulkanPemakaianTagih, tentukanBlok } from "@workspace/domain/tagihan"
 import JSZip from "jszip"
+import { verifikasiMassal } from "./verif-massal"
 
 export const laporanHarianRouter = new Hono()
 
@@ -48,20 +50,108 @@ const listQuerySchema = paginationQuerySchema.extend({
   statusVerif: z.enum(STATUS_VERIF).optional(),
   pencatatId: z.string().optional(),
   pelangganId: z.string().optional(),
+  /// Rentang TANGGAL CATAT (bukan periode). Dipakai layar verifikasi untuk
+  /// memantau setoran harian: "apa yang masuk hari ini", "pekan ini".
+  /// Keduanya inklusif; boleh dipakai sendiri-sendiri.
+  tanggalDari: z.string().trim().optional(),
+  tanggalSampai: z.string().trim().optional(),
+  /// true = hanya baris anomali (di luar ±ambang). Ambangnya dibaca dari
+  /// Konfigurasi, sama dengan yang dipakai kartu ringkasan.
+  hanyaAnomali: z.coerce.boolean().optional(),
+  /// true = kirim HANYA kolom yang dipakai tabel. Baris penuh berisi 50
+  /// field + 7 relasi (~1,9 KB); yang ditampilkan cuma 18. Pada 2.000 baris
+  /// selisihnya 3,7 MB vs ~0,9 MB — dan itu terasa sebagai "halaman berat"
+  /// jauh sebelum servernya sendiri melambat. Panel detail tetap mengambil
+  /// baris penuh lewat GET /:id saat sebuah baris dipilih.
+  ringkas: z.coerce.boolean().optional(),
 })
+
+/// Kolom yang benar-benar dibaca tabel verifikasi. Ditulis eksplisit, bukan
+/// diturunkan dari komponen, supaya menambah kolom di UI memaksa orang
+/// membuka berkas ini — daripada diam-diam mengandalkan `include` gemuk.
+const PILIH_RINGKAS = {
+  id: true,
+  nomorLangganan: true,
+  namaPelanggan: true,
+  alamatPelanggan: true,
+  periode: true,
+  standAwal: true,
+  standAkhir: true,
+  standAkhirRevisi: true,
+  pemakaian: true,
+  pemakaianLalu: true,
+  persentase: true,
+  kondisi: true,
+  tanggalCatat: true,
+  isVerified: true,
+  verifiedAt: true,
+  verif1At: true,
+  verif2At: true,
+  verif3At: true,
+  pencatat: { select: { id: true, namaLapangan: true } },
+  pelanggan: {
+    select: {
+      id: true,
+      nomorLangganan: true,
+      nama: true,
+      alamat: true,
+      rute: { select: { kode: true } },
+    },
+  },
+} as const
+
+/// Membangun filter rentang tanggal catat. Tanggal "sampai" digeser ke
+/// AKHIR hari — tanpa ini "1 Jan s/d 1 Jan" tidak akan memuat satu baris pun
+/// karena tanggalCatat menyimpan jam juga.
+function rentangTanggal(dari?: string, sampai?: string): Record<string, Date> | undefined {
+  const f: Record<string, Date> = {}
+  if (dari) {
+    const d = new Date(dari)
+    if (!Number.isNaN(d.getTime())) f.gte = d
+  }
+  if (sampai) {
+    const d = new Date(sampai)
+    if (!Number.isNaN(d.getTime())) {
+      d.setUTCHours(23, 59, 59, 999)
+      f.lte = d
+    }
+  }
+  return Object.keys(f).length > 0 ? f : undefined
+}
 
 laporanHarianRouter.get("/", requireRole(...ROLE_GROUPS.STAFF_UP), validate("query", listQuerySchema), async (c) => {
   const query = c.req.valid("query")
   const { skip, take } = buildSkipTake(query)
+  const tglCatat = rentangTanggal(query.tanggalDari, query.tanggalSampai)
+  let ambang = 50
+  if (query.hanyaAnomali) {
+    const konf = await prisma.konfigurasi.findUnique({ where: { kunci: "AMBANG_ANOMALI_PERSEN" } })
+    ambang = Number.parseInt(konf?.nilai ?? "", 10) || 50
+  }
+  // Dua syarat sama-sama butuh OR (anomali & pencarian). Ditulis sebagai
+  // dua entri AND, BUKAN dua kunci `OR` di objek yang sama — kunci kedua
+  // akan menimpa yang pertama secara diam-diam, dan hasilnya: mencari nama
+  // sambil menyaring anomali akan mengembalikan baris yang tidak anomali.
+  const and: Record<string, unknown>[] = []
+  if (query.hanyaAnomali) {
+    and.push({ OR: [{ persentase: { gt: ambang } }, { persentase: { lt: -ambang } }] })
+  }
+  if (query.q) {
+    and.push({
+      OR: [
+        { nomorLangganan: { contains: query.q } },
+        { namaPelanggan: { contains: query.q, mode: "insensitive" as const } },
+      ],
+    })
+  }
   const where = {
+    ...(tglCatat ? { tanggalCatat: tglCatat } : {}),
     periode: query.periode,
     isVerified: query.isVerified,
     pencatatId: query.pencatatId,
     pelangganId: query.pelangganId,
     ...(query.statusVerif ? WHERE_STATUS_VERIF[query.statusVerif] : {}),
-    ...(query.q
-      ? { OR: [{ nomorLangganan: { contains: query.q } }, { namaPelanggan: { contains: query.q, mode: "insensitive" as const } }] }
-      : {}),
+    ...(and.length > 0 ? { AND: and } : {}),
   }
   const [data, total] = await Promise.all([
     prisma.laporanHarianPetugas.findMany({
@@ -69,7 +159,8 @@ laporanHarianRouter.get("/", requireRole(...ROLE_GROUPS.STAFF_UP), validate("que
       skip,
       take,
       orderBy: buildOrderBy(query, { tanggalCatat: "desc" }),
-      include: {
+      ...(query.ringkas ? { select: PILIH_RINGKAS } : {}),
+      ...(query.ringkas ? {} : { include: {
         // Tabel verifikasi (tabel.md) butuh kolom turunan pelanggan (tarif,
         // rute, W = wilayah seksi, zona), stand resmi dari pembacaan, dan
         // nama verifikator tiap ring — semuanya select sempit, bukan row utuh.
@@ -90,7 +181,7 @@ laporanHarianRouter.get("/", requireRole(...ROLE_GROUPS.STAFF_UP), validate("que
         verif1By: { select: { id: true, name: true } },
         verif2By: { select: { id: true, name: true } },
         verif3By: { select: { id: true, name: true } },
-      },
+      } }),
     }),
     prisma.laporanHarianPetugas.count({ where }),
   ])
@@ -124,6 +215,74 @@ laporanHarianRouter.get("/stats", requireRole(...ROLE_GROUPS.STAFF_UP), validate
   return ok(c, { total, menunggu, diverifikasi, ditolak, anomali, ambangAnomali, periodes: periodes.map((p) => p.periode) })
 })
 
+// ── BELUM DIBACA — pemantauan beban kerja petugas ────────────────────────
+//
+// Menjawab pertanyaan yang tidak bisa dijawab tabel laporan: siapa yang
+// SEHARUSNYA dicatat bulan ini tapi belum ada setorannya. Sumbernya daftar
+// catat (DPM) periode itu, dikurangi nomor yang sudah punya laporan.
+//
+// Ini kebalikan dari daftar laporan — dan justru inilah yang dipakai
+// supervisor untuk menagih pekerjaan ke petugas, bukan menghitung yang
+// sudah masuk.
+const belumDibacaQuerySchema = paginationQuerySchema.extend({
+  periode: z.coerce.number().int().min(190001).max(999912),
+  pencatatId: z.string().optional(),
+  ruteId: z.string().optional(),
+  q: z.string().trim().min(1).optional(),
+})
+
+laporanHarianRouter.get("/belum-dibaca", requireRole(...ROLE_GROUPS.STAFF_UP), validate("query", belumDibacaQuerySchema), async (c) => {
+  const query = c.req.valid("query")
+  const { skip, take } = buildSkipTake(query)
+
+  // Nomor yang SUDAH punya laporan pada periode ini. Diambil sebagai daftar
+  // nomor (bukan join) supaya tetap sederhana dan terbaca; 22 ribu string
+  // ringan dibanding kerumitan raw query.
+  const sudah = await prisma.laporanHarianPetugas.findMany({
+    where: { periode: query.periode },
+    select: { pelangganId: true },
+  })
+  const sudahIds = sudah.map((s) => s.pelangganId).filter((v): v is string => v !== null)
+
+  const where = {
+    periode: query.periode,
+    pelangganId: { notIn: sudahIds.length > 0 ? sudahIds : ["-"] },
+    ...(query.pencatatId ? { pencatatId: query.pencatatId } : {}),
+    ...(query.ruteId ? { ruteId: query.ruteId } : {}),
+    ...(query.q
+      ? {
+          pelanggan: {
+            OR: [
+              { nomorLangganan: { contains: query.q } },
+              { nama: { contains: query.q, mode: "insensitive" as const } },
+            ],
+          },
+        }
+      : {}),
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.daftarCatat.findMany({
+      where,
+      skip,
+      take,
+      orderBy: [{ urutan: "asc" }],
+      include: {
+        pelanggan: {
+          select: {
+            id: true, nomorLangganan: true, nama: true, alamat: true, status: true,
+            rute: { select: { kode: true } },
+          },
+        },
+        pencatat: { select: { id: true, namaLapangan: true } },
+        rute: { select: { id: true, kode: true } },
+      },
+    }),
+    prisma.daftarCatat.count({ where }),
+  ])
+  return paginated(c, data, buildMeta(total, query))
+})
+
 // ── Rute Baca Meter (RBM) petugas — dipakai aplikasi mobile pencatat.
 // Terdaftar SEBELUM /:id supaya "rute-saya" tidak tertelan param id.
 //
@@ -138,7 +297,7 @@ const ruteSayaQuerySchema = z.object({
   periode: z.coerce.number().int().min(190001).max(999912).optional(),
 })
 
-laporanHarianRouter.get("/rute-saya", requireRole(...ROLE_GROUPS.STAFF_UP), validate("query", ruteSayaQuerySchema), async (c) => {
+laporanHarianRouter.get("/rute-saya", requireRole(...ROLE_GROUPS.LAPANGAN), validate("query", ruteSayaQuerySchema), async (c) => {
   const user = getSessionUser(c)
   // Default periode = bulan kalender berjalan: pencatatan lapangan merekam
   // bulan berjalan (beda dari dashboard yang memakai periode terakhir
@@ -193,10 +352,12 @@ laporanHarianRouter.get("/rute-saya", requireRole(...ROLE_GROUPS.STAFF_UP), vali
   const ruteInfo = new Map(penugasan.map((pg) => [pg.ruteId, { kode: pg.rute.kode, seksiCater: pg.rute.seksiCater, urutan: pg.urutan }]))
 
   const pelanggan = await prisma.pelanggan.findMany({
-    // CABUT_PERMANEN tidak dikunjungi lagi; status lain (DISEGEL,
-    // TUTUP_SEMENTARA) tetap masuk buku rute — petugas tetap lewat dan
-    // status ditampilkan di baris. Lintas SEMUA rute yang ditugaskan.
-    where: { ruteId: { in: ruteIds }, deletedAt: null, status: { not: "CABUT_PERMANEN" } },
+    // TIDAK ADA penyaringan status: seluruh status (DISEGEL, TUTUP_SEMENTARA,
+    // TUTUP_SPT) tetap masuk buku rute — petugas tetap lewat dan statusnya
+    // ditampilkan di baris. Dulu `CABUT_PERMANEN` dikecualikan di sini, tapi
+    // status itu sudah dihapus: di PDAM tidak ada pencabutan selamanya.
+    // Lintas SEMUA rute yang ditugaskan.
+    where: { ruteId: { in: ruteIds }, deletedAt: null },
     // Urutan kunjungan DALAM rute (noUrutRute); urutan ANTAR rute diterapkan
     // di bawah mengikuti PenugasanRute.urutan.
     orderBy: [{ noUrutRute: { sort: "asc", nulls: "last" } }, { nomorLangganan: "asc" }],
@@ -372,7 +533,7 @@ laporanHarianRouter.get("/rute-saya", requireRole(...ROLE_GROUPS.STAFF_UP), vali
 // bernama `foto` juga untuk video — kontrak satu pintu, jangan dipecah.
 const JENIS_FOTO = ["stand", "segel", "rumah", "video"] as const
 
-laporanHarianRouter.post("/foto", requireRole(...ROLE_GROUPS.STAFF_UP), async (c) => {
+laporanHarianRouter.post("/foto", requireRole(...ROLE_GROUPS.LAPANGAN), async (c) => {
   const form = await c.req.formData()
   const parsed = z
     .object({
@@ -500,16 +661,50 @@ async function hitungJarakMeter(pelangganId: string, latCatat: number, longCatat
 /// Inti penyimpanan satu laporan — dipakai POST / dan POST /batch supaya
 /// aturan bisnisnya (pemakaian dihitung server, snapshot identitas, jarak
 /// GPS) tidak bercabang dua.
+/// Hari terakhir bulan sebuah periode (TTTTBB), dalam UTC. Hari ke-0 bulan
+/// berikutnya = hari terakhir bulan ini.
+function akhirBulanPeriode(periode: number): Date {
+  const tahun = Math.floor(periode / 100)
+  const bulan = periode % 100
+  return new Date(Date.UTC(tahun, bulan, 0))
+}
+
 async function simpanLaporan(input: CreateLaporanInput, pencatatIdDefault: string | null) {
   // notelpBaru bukan kolom laporan — dipisah sebelum spread ke create().
   const { notelpBaru, ...body } = input
   // pemakaian dihitung server dari stand, bukan diterima dari client.
   const pemakaian = Math.max(0, body.standAkhir - body.standAwal)
 
-  // pencatatId tidak dikirim client mobile — diisi dari akun token (jembatan
-  // Pencatat.userId), supaya laporan lapangan selalu tahu siapa pencatatnya
-  // tanpa memercayai client menyebut identitasnya sendiri.
-  const pencatatId = body.pencatatId === undefined ? pencatatIdDefault : body.pencatatId
+  // Siapa pencatatnya, dengan tiga lapis — dari yang paling tahu ke yang
+  // paling umum:
+  //
+  //   1. dikirim client        (jarang; hanya alat administratif)
+  //   2. akun token            aplikasi petugas: pengirimnya sendiri
+  //      (jembatan Pencatat.userId), tanpa memercayai client menyebut
+  //      identitasnya sendiri
+  //   3. PENUGASAN RUTE        entri manual dari layar Mutasi PBPK: yang
+  //      menekan tombol adalah operator kantor, bukan pencatat, sehingga
+  //      lapis 2 kosong. Petugas yang benar adalah yang ditugaskan pada
+  //      rute pelanggan itu.
+  //
+  // Tanpa lapis ke-3, laporan hasil entri manual lahir tanpa petugas — dan
+  // di layar verifikasi kolom Petugas kosong padahal rutenya jelas menunjuk
+  // seseorang. Itu bukan sekadar tampilan: beban kerja per petugas jadi
+  // tidak menghitung sambungan baru sama sekali.
+  let pencatatId = body.pencatatId === undefined ? pencatatIdDefault : body.pencatatId
+  if (!pencatatId && body.pelangganId) {
+    const lewatRute = await prisma.pelanggan.findUnique({
+      where: { id: body.pelangganId },
+      select: {
+        rute: {
+          select: {
+            penugasanRute: { select: { pencatatId: true }, orderBy: { urutan: "asc" }, take: 1 },
+          },
+        },
+      },
+    })
+    pencatatId = lewatRute?.rute?.penugasanRute[0]?.pencatatId ?? null
+  }
 
   // Snapshot identitas (nama/alamat) WAJIB terisi selama pelanggannya
   // dikenal — baris harus tetap terbaca di UI walau relasi pelanggan
@@ -529,8 +724,21 @@ async function simpanLaporan(input: CreateLaporanInput, pencatatIdDefault: strin
       ? await hitungJarakMeter(body.pelangganId, body.latCatat, body.longCatat)
       : null
 
+  // tanggalCatat: kiriman aplikasi petugas selalu membawanya (waktu ia
+  // berdiri di depan meter). Entri manual tidak — dan tanpa nilai, kolom
+  // "Catat" di layar verifikasi kosong serta saringan rentang tanggal tidak
+  // pernah menemukan barisnya.
+  //
+  // Bawaannya AKHIR BULAN PERIODE, bukan "sekarang". Periode yang dikerjakan
+  // kerap tertinggal jauh dari kalender — mengisi waktu penyimpanan membuat
+  // pembacaan Januari bertanggal catat Juli, yang salah di layar dan membuat
+  // saringan rentang tanggal Januari tidak pernah menemukannya. Kapan baris
+  // ini DIKETIK tetap terekam terpisah di createdAt; yang dicatat di sini
+  // adalah kapan meternya dibaca, dan itu ada di dalam periodenya.
+  const tanggalCatat = body.tanggalCatat ?? akhirBulanPeriode(body.periode)
+
   const row = await prisma.laporanHarianPetugas.create({
-    data: { ...body, pencatatId, namaPelanggan, alamatPelanggan, pemakaian, jarakMeter, tanggalUpload: new Date() },
+    data: { ...body, pencatatId, tanggalCatat, namaPelanggan, alamatPelanggan, pemakaian, jarakMeter, tanggalUpload: new Date() },
   })
 
   // Pembaruan kontak dari lapangan diterapkan SETELAH laporan tersimpan —
@@ -546,7 +754,7 @@ async function simpanLaporan(input: CreateLaporanInput, pencatatIdDefault: strin
   return row
 }
 
-laporanHarianRouter.post("/", requireRole(...ROLE_GROUPS.STAFF_UP), validate("json", createSchema), async (c) => {
+laporanHarianRouter.post("/", requireRole(...ROLE_GROUPS.LAPANGAN), validate("json", createSchema), async (c) => {
   const body = c.req.valid("json")
   const requester = getSessionUser(c)
   let pencatatIdDefault: string | null = null
@@ -570,7 +778,7 @@ const batchSchema = z.object({
   laporan: z.array(createSchema).min(1).max(300),
 })
 
-laporanHarianRouter.post("/batch", requireRole(...ROLE_GROUPS.STAFF_UP), validate("json", batchSchema), async (c) => {
+laporanHarianRouter.post("/batch", requireRole(...ROLE_GROUPS.LAPANGAN), validate("json", batchSchema), async (c) => {
   const { laporan } = c.req.valid("json")
   const requester = getSessionUser(c)
   const pencatat = await prisma.pencatat.findUnique({ where: { userId: requester.id }, select: { id: true } })
@@ -640,7 +848,12 @@ const IMPOR_MAKS_ENTRI = 5000
 const TIPE_FOTO = ["stand", "segel", "rumah", "video"] as const
 const TIPE_IMPOR = [...TIPE_FOTO, "catatan"] as const
 type TipeImpor = (typeof TIPE_IMPOR)[number]
-const FIELD_URL_FOTO: Record<string, "fotoStandUrl" | "fotoSegelUrl" | "fotoRumahUrl" | "videoUrl"> = {
+type JenisFoto = (typeof TIPE_FOTO)[number]
+// Dikunci ke JenisFoto (bukan Record<string, …>): dengan kunci berhingga,
+// pencarian FIELD_URL_FOTO[jenis] TOTAL — tidak bisa menghasilkan undefined
+// yang diam-diam jadi nama kolom `undefined` saat dipakai sebagai computed
+// property di updateMany.
+const FIELD_URL_FOTO: Record<JenisFoto, "fotoStandUrl" | "fotoSegelUrl" | "fotoRumahUrl" | "videoUrl"> = {
   stand: "fotoStandUrl",
   segel: "fotoSegelUrl",
   rumah: "fotoRumahUrl",
@@ -722,7 +935,9 @@ laporanHarianRouter.post("/import-backup", requireRole(...ROLE_GROUPS.STAFF_UP),
       }
       for (const jalur of Object.keys(zip.files)) {
         const item = zip.files[jalur]
-        if (item.dir) continue
+        // `item` dijaga eksplisit: JSZip.files bertipe indeks, jadi kunci
+        // hasil Object.keys pun tetap bisa bertipe undefined bagi TS.
+        if (!item || item.dir) continue
         entri.push({ nama: jalur, buffer: () => item.async("arraybuffer"), teks: () => item.async("string") })
       }
     } else {
@@ -733,10 +948,19 @@ laporanHarianRouter.post("/import-backup", requireRole(...ROLE_GROUPS.STAFF_UP),
 
   // ── Klasifikasi entri: CSV catatan vs foto/video (dari nama-dasar).
   const entriCsv = entri.filter((e) => /(?:^|\/)catatan\//i.test(e.nama) || /_catatan\.csv$/i.test(e.nama))
-  const entriFoto: { e: EntriImpor; periode: number; jenis: string; nomor: string }[] = []
+  const entriFoto: { e: EntriImpor; periode: number; jenis: JenisFoto; nomor: string }[] = []
   for (const e of entri) {
     const m = POLA_FOTO.exec(e.nama)
-    if (m) entriFoto.push({ e, periode: Number(m[1]), jenis: m[2].toLowerCase(), nomor: m[3] })
+    if (!m) continue
+    const [, periodeTeks, jenisTeks, nomor] = m
+    if (!periodeTeks || !jenisTeks || !nomor) continue
+    // Dicocokkan ke TIPE_FOTO alih-alih di-cast: regex memang sudah membatasi
+    // pilihannya, tapi pencocokan nyata inilah yang membuat `jenis` bertipe
+    // JenisFoto tanpa asersi — sekaligus menormalkan huruf besar/kecil karena
+    // POLA_FOTO memakai flag `i`.
+    const jenis = TIPE_FOTO.find((t) => t === jenisTeks.toLowerCase())
+    if (!jenis) continue
+    entriFoto.push({ e, periode: Number(periodeTeks), jenis, nomor })
   }
   if (entriCsv.length === 0 && entriFoto.length === 0) {
     throw new BadRequestError("Tidak ada berkas yang dikenali (nama harus `periode_tipe_nomor.jpg` atau CSV catatan).")
@@ -755,9 +979,10 @@ laporanHarianRouter.post("/import-backup", requireRole(...ROLE_GROUPS.STAFF_UP),
         hasil.push({ index: idx++, jenis: "catatan", nomorLangganan: "?", periode: 0, status: "GAGAL", pesan: `CSV "${e.nama}" gagal dibaca.` })
         continue
       }
-      if (baris.length < 2) continue
-      const header = baris[0].map((h) => h.trim())
-      for (const kolom of baris.slice(1)) {
+      const [barisHeader, ...isiCsv] = baris
+      if (!barisHeader || isiCsv.length === 0) continue
+      const header = barisHeader.map((h) => h.trim())
+      for (const kolom of isiCsv) {
         const obj: Record<string, string> = {}
         header.forEach((h, i) => {
           const v = (kolom[i] ?? "").trim()
@@ -804,8 +1029,8 @@ laporanHarianRouter.post("/import-backup", requireRole(...ROLE_GROUPS.STAFF_UP),
 
   // ── 2) Foto/video → LAMPIRKAN ke pembacaan yang sudah ada (nomor, periode).
   for (const { e, periode, jenis, nomor } of entriFoto) {
-    if (!aktif(jenis as TipeImpor)) continue
-    const identitas = { index: idx++, jenis: jenis as TipeImpor, nomorLangganan: nomor, periode }
+    if (!aktif(jenis)) continue
+    const identitas = { index: idx++, jenis, nomorLangganan: nomor, periode }
     try {
       const buf = await e.buffer()
       const berkasFoto = new File([buf], `${periode}_${jenis}_${nomor}.${jenis === "video" ? "mp4" : "jpg"}`, {
@@ -877,6 +1102,11 @@ const verif1Schema = z.object({
   /// kumulatif kerap menuntut kondisi ikut dibenarkan. Ikut mengalir ke
   /// PembacaanMeter resmi saat V3 (V3 membaca laporan.kondisi).
   kondisi: z.enum(KondisiCatat).optional(),
+  /// Pemakaian yang DITAGIHKAN, bila verifikator menetapkannya sendiri.
+  /// Dikosongkan = pakai usulan otomatis dari aturan (minimum 5 m3 per
+  /// Perdir, taksiran bulan lalu untuk meter tak terbaca). Lihat
+  /// packages/domain/tagihan.ts dan catatan di atas endpoint V3.
+  pemakaianTagih: z.coerce.number().int().min(0).nullable().optional(),
 })
 
 laporanHarianRouter.patch("/:id/verif1", requireRole(...ROLE_GROUPS.SUPERVISOR_UP), validate("json", verif1Schema), async (c) => {
@@ -900,6 +1130,7 @@ laporanHarianRouter.patch("/:id/verif1", requireRole(...ROLE_GROUPS.SUPERVISOR_U
       meterVerifId: body.meterId,
       blokTarifVerif: body.blokTarif,
       standAkhirRevisi: body.standAkhirRevisi,
+      pemakaianTagihVerif: body.pemakaianTagih,
       // undefined = kondisi tidak dikoreksi, nilai lama dipertahankan.
       kondisi: body.kondisi,
       // ?? null (bukan undefined): tanpa catatan baru, catatan penolakan
@@ -916,7 +1147,41 @@ laporanHarianRouter.patch("/:id/verif1", requireRole(...ROLE_GROUPS.SUPERVISOR_U
   return ok(c, row)
 })
 
-const catatanSchema = z.object({ catatanVerif: z.string().trim().max(500).nullable().optional() })
+/// V2 & V3 BOLEH MENGOREKSI, bukan sekadar menandatangani.
+///
+/// Versi pertama hanya menerima catatan di kedua ring ini, dan akibatnya
+/// janggal: kalau supervisor salah memasukkan angka di V1, manager dan
+/// senior manager cuma punya dua pilihan — meloloskan yang salah, atau
+/// menolak seluruh laporan sehingga PETUGAS yang disuruh mengulang padahal
+/// kesalahannya bukan di dia. Wewenang yang lebih tinggi tapi kemampuan
+/// yang lebih rendah tidak masuk akal.
+///
+/// Semua kolom koreksi bersifat OPSIONAL: mengirim body kosong = "saya
+/// setuju apa adanya", persis perilaku lama. Yang dikirim akan menimpa
+/// nilai V1, dan siapa yang terakhir mengubah tetap terbaca dari ring yang
+/// mengisinya.
+const catatanSchema = z.object({
+  catatanVerif: z.string().trim().max(500).nullable().optional(),
+  /// Koreksi yang sama persis yang tersedia di V1.
+  meterId: z.string().min(1).optional(),
+  blokTarif: z.coerce.number().int().min(1).max(4).optional(),
+  standAkhirRevisi: z.coerce.number().int().min(0).nullable().optional(),
+  pemakaianTagih: z.coerce.number().int().min(0).nullable().optional(),
+  kondisi: z.enum(KondisiCatat).optional(),
+})
+
+/// Menerjemahkan koreksi opsional jadi potongan `data` Prisma. Kolom yang
+/// TIDAK dikirim sengaja tidak masuk objek sama sekali — bukan diisi null —
+/// supaya "tidak menyebut" tidak pernah berarti "kosongkan".
+function koreksiDari(body: z.infer<typeof catatanSchema>): Record<string, unknown> {
+  const data: Record<string, unknown> = {}
+  if (body.meterId !== undefined) data.meterVerifId = body.meterId
+  if (body.blokTarif !== undefined) data.blokTarifVerif = body.blokTarif
+  if (body.standAkhirRevisi !== undefined) data.standAkhirRevisi = body.standAkhirRevisi
+  if (body.pemakaianTagih !== undefined) data.pemakaianTagihVerif = body.pemakaianTagih
+  if (body.kondisi !== undefined) data.kondisi = body.kondisi
+  return data
+}
 
 laporanHarianRouter.patch("/:id/verif2", requireRole(...ROLE_GROUPS.MANAGEMENT_UP), validate("json", catatanSchema), async (c) => {
   const id = c.req.param("id")
@@ -934,6 +1199,7 @@ laporanHarianRouter.patch("/:id/verif2", requireRole(...ROLE_GROUPS.MANAGEMENT_U
       verif2At: new Date(),
       verif2ById: requester.id,
       ...(body.catatanVerif !== undefined ? { catatanVerif: body.catatanVerif } : {}),
+      ...koreksiDari(body),
     },
   })
   return ok(c, row)
@@ -941,30 +1207,81 @@ laporanHarianRouter.patch("/:id/verif2", requireRole(...ROLE_GROUPS.MANAGEMENT_U
 
 /// V3 = final approval: satu-satunya tempat PembacaanMeter resmi dibuat.
 /// Stand resmi = standAkhirRevisi (bila V1 mengoreksi) atau standAkhir catat.
+///
+/// PEMAKAIAN TAGIH ≠ SELISIH STAND. Versi awal endpoint ini memakai
+/// `standAkhir - standAwal` mentah sebagai `pemakaianM3`. Itu keliru dan
+/// dampaknya besar: di data periode 202605, pemakaian yang DITAGIHKAN
+/// berbeda dari selisih stand pada 10.160 dari 22.523 pelanggan (45%).
+/// Aturannya — pemakaian minimum 5 m3 menurut Peraturan Direksi, dan
+/// taksiran dari pemakaian bulan lalu bila meter tidak terbaca — hidup di
+/// packages/domain/tagihan.ts. Tanpa ini, tagihan pertama yang diterbitkan
+/// aplikasi akan berbeda dari Aurora untuk hampir separuh pelanggan.
+///
+/// Verifikator tetap pemegang keputusan: `pemakaianTagihVerif` yang diisi
+/// di V1 selalu menang atas usulan otomatis. Selisih apa pun terhadap
+/// pemakaian riil disimpan beserta ALASANNYA di PembacaanMeter, supaya
+/// pertanyaan "kenapa saya ditagih segini" punya jawaban yang bisa
+/// ditelusuri.
 laporanHarianRouter.patch("/:id/verif3", requireRole(...ROLE_GROUPS.SENIOR_UP), validate("json", catatanSchema), async (c) => {
   const id = c.req.param("id")
   const requester = getSessionUser(c)
+  const body = c.req.valid("json")
   const laporan = await prisma.laporanHarianPetugas.findUnique({ where: { id } })
   if (!laporan) throw new NotFoundError("LaporanHarianPetugas")
   if (laporan.pembacaanId) throw new ConflictError("Laporan sudah menjadi pembacaan resmi")
   if (!laporan.verif1At || !laporan.verif2At) throw new BadRequestError("V3 menunggu V1 dan V2 selesai")
-  if (!laporan.meterVerifId) throw new BadRequestError("Meter tujuan belum dipilih di V1")
+  // Koreksi yang dikirim BERSAMA V3 berlaku untuk pembacaan yang terbit di
+  // transaksi ini juga — bukan cuma tersimpan di laporan. Kalau tidak,
+  // senior manager akan melihat angka yang ia perbaiki tetap terbit salah.
+  const koreksi = koreksiDari(body)
+  const meterVerifId = (koreksi.meterVerifId as string | undefined) ?? laporan.meterVerifId
+  if (!meterVerifId) throw new BadRequestError("Meter tujuan belum dipilih di V1")
 
-  const standAkhir = laporan.standAkhirRevisi ?? laporan.standAkhir
-  const pemakaian = Math.max(0, standAkhir - laporan.standAwal)
+  const standAkhir =
+    (koreksi.standAkhirRevisi as number | null | undefined) ??
+    laporan.standAkhirRevisi ??
+    laporan.standAkhir
+  const kondisiEfektif = (koreksi.kondisi as typeof laporan.kondisi | undefined) ?? laporan.kondisi
+  const pemakaianTagihVerif =
+    (koreksi.pemakaianTagih as number | null | undefined) ?? laporan.pemakaianTagihVerif
+  const pemakaianRiil = Math.max(0, standAkhir - laporan.standAwal)
+
+  // TIDAK ADA TAKSASI OTOMATIS.
+  //
+  // Aturan taksiran (minimum 5 m3, taksiran dari bulan lalu) DIHAPUS dari
+  // jalur otomatis atas keputusan pemilik data. Alasannya: angka yang
+  // dibawa lapdatameter & ProgresCater sudah matang — ia keluaran
+  // verifikasi berjenjang di Aurora — sehingga menaksirnya ulang berarti
+  // menimpa keputusan manusia dengan tebakan mesin.
+  //
+  // Aturan sistem tetap ada, tapi berlaku hanya saat OPERATOR yang
+  // menerapkannya dengan jarinya sendiri (lewat kolom pemakaianTagihVerif
+  // di modal V1/V2/V3). Dengan begitu setiap penyimpangan dari angka catat
+  // selalu punya nama orang di belakangnya dan bisa ditelusuri.
+  // OVERRIDE_MANUAL HANYA bila operator yang menetapkannya — lihat catatan
+  // yang sama di verif-massal.ts.
+  const pemakaianTagih = pemakaianTagihVerif ?? laporan.pemakaian
+  const alasanTaksir =
+    pemakaianTagihVerif !== null && pemakaianTagihVerif !== undefined ? "OVERRIDE_MANUAL" : null
+
   const kini = new Date()
 
   const row = await prisma.$transaction(async (tx) => {
     const pembacaan = await tx.pembacaanMeter.create({
       data: {
-        meterId: laporan.meterVerifId!,
+        meterId: meterVerifId,
         periode: periodeToDate(laporan.periode),
         standLalu: laporan.standAwal,
         standAkhir,
-        pemakaianM3: pemakaian,
-        blokTarif: laporan.blokTarifVerif ?? 1,
+        pemakaianM3: pemakaianTagih,
+        pemakaianRiil,
+        alasanTaksir,
+        blokTarif:
+          (koreksi.blokTarifVerif as number | undefined) ??
+          laporan.blokTarifVerif ??
+          tentukanBlok(pemakaianTagih),
         pemakaianLalu: laporan.pemakaianLalu,
-        kondisi: laporan.kondisi,
+        kondisi: kondisiEfektif,
         kategori: laporan.kategori,
         pencatatId: laporan.pencatatId,
         tanggalCatat: laporan.tanggalCatat,
@@ -973,11 +1290,32 @@ laporanHarianRouter.patch("/:id/verif3", requireRole(...ROLE_GROUPS.SENIOR_UP), 
         fotoBukti: laporan.fotoStandUrl,
       },
     })
+    // TUTUP LINGKARNYA: baris daftar catat ditandai DICATAT begitu pembacaan
+    // resminya lahir. Tanpa ini statusnya membeku di nilai saat baris dibuat,
+    // dan layar closing selamanya melaporkan "belum menghasilkan pembacaan"
+    // untuk sambungan yang JUSTRU sudah dibaca — karena tidak ada satu pun
+    // jalur yang memperbaruinya.
+    //
+    // updateMany (bukan update): baris DPM bisa saja tidak ada — mis. laporan
+    // susulan atas sambungan yang belum masuk daftar kerja periode itu — dan
+    // itu bukan alasan menggagalkan penerbitan pembacaan.
+    if (laporan.pelangganId) {
+      await tx.daftarCatat.updateMany({
+        where: { periode: laporan.periode, pelangganId: laporan.pelangganId },
+        data: { status: "DICATAT", selesaiAt: kini },
+      })
+    }
+
     return tx.laporanHarianPetugas.update({
       where: { id },
       data: {
         verif3At: kini,
         verif3ById: requester.id,
+        // Koreksi ikut TERSIMPAN di laporan, bukan cuma dipakai sekali —
+        // supaya jejaknya bisa ditelusuri dan angka di layar sama dengan
+        // angka yang terbit.
+        ...koreksi,
+        ...(body.catatanVerif !== undefined ? { catatanVerif: body.catatanVerif } : {}),
         // Penanda final legacy tetap diisi supaya filter statusVerif,
         // stats, dan konsumen lama (mobile) membaca status yang sama.
         isVerified: true,
@@ -989,6 +1327,48 @@ laporanHarianRouter.patch("/:id/verif3", requireRole(...ROLE_GROUPS.SENIOR_UP), 
     })
   })
   return ok(c, row)
+})
+
+// ── Verifikasi massal (V1/V2/V3 untuk banyak baris sekaligus) ────────────
+//
+// Wewenangnya MENGIKUTI RING, bukan diseragamkan: V1 supervisor ke atas,
+// V2 manajemen ke atas, V3 senior ke atas — sama persis dengan endpoint
+// satuannya. Borongan tidak boleh jadi pintu belakang yang lebih longgar.
+const verifMassalSchema = z.object({
+  ring: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  ids: z.array(z.string().min(1)).min(1).max(500),
+  /// Bawaannya false: baris anomali dilewati & dilaporkan, tidak diloloskan
+  /// diam-diam. Pemanggil harus menyatakan niatnya secara eksplisit.
+  sertakanAnomali: z.boolean().optional(),
+})
+
+const RING_ROLE = {
+  1: ROLE_GROUPS.SUPERVISOR_UP,
+  2: ROLE_GROUPS.MANAGEMENT_UP,
+  3: ROLE_GROUPS.SENIOR_UP,
+} as const
+
+laporanHarianRouter.post("/verif-massal", requireRole(...ROLE_GROUPS.SUPERVISOR_UP), validate("json", verifMassalSchema), async (c) => {
+  const { ring, ids, sertakanAnomali } = c.req.valid("json")
+  const requester = getSessionUser(c)
+  // Penjagaan ring KEDUA, setelah penjagaan kasar di middleware: middleware
+  // hanya bisa memeriksa satu daftar role, sedangkan ring-nya baru diketahui
+  // dari body.
+  if (!(RING_ROLE[ring] as readonly string[]).includes(requester.role)) {
+    throw new ForbiddenError(`Verifikasi V${ring} memerlukan salah satu role: ${RING_ROLE[ring].join(", ")}`)
+  }
+
+  const konf = await prisma.konfigurasi.findUnique({ where: { kunci: "AMBANG_ANOMALI_PERSEN" } })
+  const ambangAnomali = Number.parseInt(konf?.nilai ?? "", 10) || 50
+
+  const hasil = await verifikasiMassal({
+    ids,
+    ring,
+    userId: requester.id,
+    ambangAnomali,
+    sertakanAnomali: sertakanAnomali ?? false,
+  })
+  return ok(c, hasil)
 })
 
 const rejectSchema = z.object({ catatanVerif: z.string().trim().min(1).max(500) })

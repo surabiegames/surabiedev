@@ -3,6 +3,24 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["index.ts", "prisma.config.ts"],
+  // Pipeline seed IKUT di-typecheck (dulu tidak — akibatnya impor basi
+  // "@/app/generated/prisma" peninggalan layout project lama lolos begitu
+  // saja dan seed gagal saat dijalankan, bukan saat `pnpm typecheck`).
+  //
+  // bootstrap-*.ts & reset-pencatat-password.ts sengaja BELUM diikutkan:
+  // ketiganya butuh `hashPassword` dari @workspace/auth, sementara paket
+  // auth sendiri bergantung pada @workspace/db (circular) DAN password.ts
+  // memakai `import "server-only"` yang melempar error kalau dijalankan
+  // dengan tsx biasa. Perlu keputusan penempatan dulu — lihat catatan di
+  // prisma/README.md.
+  "include": [
+    "index.ts",
+    "prisma.config.ts",
+    "prisma/seed/index.ts",
+    "prisma/seed/lib/**/*.ts",
+    "prisma/seed/steps/**/*.ts",
+    "prisma/seed/cek-konsistensi.ts",
+    "prisma/seed/verifikasi-tarif.ts"
+  ],
   "exclude": ["node_modules", "generated"]
 }

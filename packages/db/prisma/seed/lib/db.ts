@@ -2,9 +2,11 @@
 // sama seperti auth.ts (driver adapter pg, bukan connection string
 // bawaan Prisma).
 //
-// CATATAN PENTING: import PrismaClient dari "@/app/generated/prisma"
-// (root package), BUKAN dari "@/app/generated/prisma/client". Sudah
-// diverifikasi: import lewat subpath "/client" (re-export "export * from
+// CATATAN PENTING: import PrismaClient dari "../../../generated/client",
+// yaitu ROOT package hasil generate (folder `generated/client` memang nama
+// foldernya — di dalamnya ada package.json sendiri), BUKAN dari subpath
+// "/client"-nya. Sudah diverifikasi: import lewat subpath "/client"
+// (re-export "export * from
 // './index'") membuat TypeScript GAGAL meng-infer generic ClientOptions
 // dengan benar — 33 dari 37 getter model (semua KECUALI user/account/
 // session/spatial_ref_sys) hilang dari tipe hasil ("Property 'x' does not
@@ -16,12 +18,26 @@
 // baris ini DATABASE_URL bakal undefined dan @prisma/adapter-pg gagal
 // dengan pesan error yang menyesatkan ("SASL: ... client password must
 // be a string") alih-alih "env var tidak ada".
-import "dotenv/config"
-import { PrismaClient } from "@/app/generated/prisma"
+//
+// .env-nya ada di ROOT monorepo, sedangkan seed dijalankan dengan cwd
+// packages/db — `import "dotenv/config"` saja (yang cuma melihat cwd)
+// TIDAK menemukannya. Karena itu path root dihitung eksplisit dari lokasi
+// file ini, bukan dari cwd, supaya seed tetap jalan dari direktori mana pun.
+import { config as loadEnv } from "dotenv"
+import { resolve } from "node:path"
+import { PrismaClient } from "../../../generated/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 
+// lib -> seed -> prisma -> db -> packages -> root monorepo
+loadEnv({ path: resolve(__dirname, "../../../../../.env") })
+// .env lokal paket (kalau ada) TIDAK menimpa yang sudah terisi di atas —
+// perilaku bawaan dotenv: variabel yang sudah ada tidak ditimpa.
+loadEnv()
+
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL tidak ditemukan di environment — cek file .env di root project.")
+  throw new Error(
+    "DATABASE_URL tidak ditemukan di environment — cek file .env di root monorepo (/home/.../surabiedev/.env)."
+  )
 }
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })

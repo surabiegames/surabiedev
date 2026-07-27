@@ -1,7 +1,7 @@
 "use client";
 
 // features/dashboard/components/verifikasi/modal-lapangan.tsx — modal aksi
-// V1 (ring pertama verifikasi berjenjang V1→V2→V3, lihat tabel.md): foto
+// verifikasi berjenjang V1→V2→V3 (lihat tabel.md): foto
 // (bila ada) berdampingan dengan ST akhir revisi, meter tujuan, dan blok
 // tarif. V2/V3 hanya persetujuan (dialog konfirmasi di halaman), jadi
 // satu-satunya modal isian adalah V1 ini — plus mode "cek ulang" (tolak).
@@ -34,6 +34,7 @@ export function ModalLapangan({
   detail,
   meters,
   meterAwal,
+  ring,
   tolakAwal,
   onTutup,
   onSelesai,
@@ -42,6 +43,11 @@ export function ModalLapangan({
   meters: MeterRingkas[];
   /** Prapilih dari panel: meter yang nomornya cocok, lalu meter aktif. */
   meterAwal: string;
+  /** Ring yang sedang dikerjakan. Ketiganya menerima koreksi yang sama —
+   *  V2/V3 bukan sekadar tanda tangan: kalau V1 salah memasukkan angka,
+   *  atasannya harus bisa MEMBETULKAN, bukan cuma meloloskan atau menolak
+   *  seluruh laporan sehingga petugas yang disuruh mengulang. */
+  ring: 1 | 2 | 3;
   /** true = langsung mode cek ulang (dipicu aksi "Cek ulang" di menu). */
   tolakAwal: boolean;
   onTutup: () => void;
@@ -67,12 +73,12 @@ export function ModalLapangan({
     ? Math.max(0, revisiNum - detail.standAwal)
     : null;
 
-  async function jalankan(aksi: "verif1" | "reject") {
+  async function jalankan(aksi: "verif" | "reject") {
     setMengirim(true);
     setGalat(null);
     try {
-      if (aksi === "verif1") {
-        await kirimJson(`/laporan-harian/${detail.id}/verif1`, "PATCH", {
+      if (aksi === "verif") {
+        await kirimJson(`/laporan-harian/${detail.id}/verif${ring}`, "PATCH", {
           meterId,
           blokTarif: Number(blokTarif),
           catatanVerif: catatan.trim() || undefined,
@@ -99,7 +105,7 @@ export function ModalLapangan({
     <DialogVerifikasi
       buka
       onBuka={(v) => !v && onTutup()}
-      judul={`Verifikasi V1 — ${detail.pelanggan?.nama ?? detail.namaPelanggan ?? detail.nomorLangganan}`}
+      judul={`Verifikasi V${ring} — ${detail.pelanggan?.nama ?? detail.namaPelanggan ?? detail.nomorLangganan}`}
       subjudul={`${formatPeriode(detail.periode)} · ${detail.pencatat?.namaLapangan ?? "pencatat tidak diketahui"} · stand catat ${detail.standAwal.toLocaleString("id-ID")} → ${detail.standAkhir.toLocaleString("id-ID")}.`}
       fotoLabel={`Foto meter — ${formatPeriode(detail.periode)}`}
       fotos={[
@@ -243,10 +249,10 @@ export function ModalLapangan({
           <Button
             className="h-9 w-full"
             disabled={mengirim || !meterId || !revisiSiap}
-            onClick={() => jalankan("verif1")}
+            onClick={() => jalankan("verif")}
           >
             {mengirim && <Spinner className="size-3.5" />}
-            {berubah ? "Simpan revisi & tandai V1" : "Valid — tandai V1"}
+            {berubah ? `Simpan koreksi & tandai V${ring}` : `Valid — tandai V${ring}`}
           </Button>
           <Button
             variant="outline"

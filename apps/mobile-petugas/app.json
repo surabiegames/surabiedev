@@ -1,0 +1,81 @@
+{
+  "expo": {
+    "name": "Tirtawening Petugas",
+    "slug": "tirtawening-petugas",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon-logo.png",
+    "scheme": "tirtaweningpetugas",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.surabie.tirtaweningpetugas",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Kamera dipakai memotret stand meter, segel, dan rumah pelanggan sebagai bukti pencatatan.",
+        "NSPhotoLibraryUsageDescription": "Galeri dipakai memilih foto bukti pencatatan bila pengambilan langsung gagal.",
+        "NSLocationWhenInUseUsageDescription": "Lokasi dipakai merekam posisi Anda saat mencatat meter — bukti kehadiran di titik pelanggan."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/adaptive-logo.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.surabie.tirtaweningpetugas",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "headers": {
+            "Cross-Origin-Embedder-Policy": "credentialless",
+            "Cross-Origin-Opener-Policy": "same-origin"
+          }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-localization",
+      "expo-secure-store",
+      "expo-sqlite",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Kamera dipakai memotret stand meter sebagai bukti pencatatan."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Lokasi dipakai merekam posisi Anda saat mencatat meter."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {}
+    }
+  }
+}

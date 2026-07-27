@@ -3,7 +3,7 @@
 // Excel Indonesia). File mentah TIDAK PERNAH ditulis ulang oleh kode ini
 // — hanya dibaca (lihat prisma/README.md bagian "Filosofi ETL").
 
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { parse } from "csv-parse/sync"
 
@@ -111,106 +111,105 @@ export interface ProgresCaterRow {
   tglcatat: string
 }
 
-/// lapdatametertes.csv — hasil pencatatan meter dari aplikasi baca meter
-/// petugas lapangan (pra-verifikasi). PENTING: kolom "Kd_kel"/"Nm_Kel"
-/// SEBENARNYA berisi kode/teks kondisi-catat, BUKAN kelurahan — lihat
-/// normalize.ts.
-export interface LapdatameterRow {
-  "No Pel": string
-  Nama: string
-  Alamat: string
-  Periode: string
-  "St AWAL": string
-  "St Akhir": string
-  "St Akhir Catat": string
-  Pakai: string
-  "Pakai Lau": string
-  persentase: string
-  Trf: string
-  Kd_kel: string
-  Nm_Kel: string
-  kd_petugas: string
-  kd_wm: string
-  Wil: string
-  Rute: string
-  "Zona Wil": string
-  "Kd Zonasi": string
-  "Nama Zonasi": string
-  Kecamatan: string
-  Kelurahan: string
-  tgl_catat: string
-  tgl_upload: string
-  "Nama Petugas": string
+/// ────────────────────────────────────────────────────────────────────────
+/// PEMBACAAN PER PERIODE
+///
+/// Data disusun per folder bulan di `prisma/data/{jan,feb,mar,apr,mei,juni}`.
+/// Susunan ini bukan kerapian belaka — ia yang memungkinkan impor progresif:
+/// Januari MEMBENTUK database, bulan berikutnya MEMPERBARUI, dan pelanggan
+/// yang HILANG antar-bulan berarti dicabut.
+///
+/// ProgresCater adalah SUMBER KEBENARAN. lapdatameter adalah laporan
+/// pencatatan petugas dan boleh berbeda — kalau berbeda, lapdatameter yang
+/// salah, karena ProgresCater-lah yang dipakai sebagai bahan laporan resmi
+/// bulanan.
+/// ────────────────────────────────────────────────────────────────────────
+
+/// Urutan periode WAJIB kronologis: seluruh deteksi cabutan & sambungan baru
+/// bersandar pada perbandingan bulan-ke-bulan yang berurutan.
+const SEMUA_PERIODE = [
+  { folder: "jan", thbl: 202601 },
+  { folder: "feb", thbl: 202602 },
+  { folder: "mar", thbl: 202603 },
+  { folder: "apr", thbl: 202604 },
+  { folder: "mei", thbl: 202605 },
+  { folder: "juni", thbl: 202606 },
+] as const
+
+export type Periode = (typeof SEMUA_PERIODE)[number]
+
+/// SEED_PERIODE membatasi periode mana yang dibaca seed — dipakai untuk
+/// menguji kemandirian aplikasi: impor ProgresCater HANYA untuk Januari
+/// (membentuk populasi awal), lalu bulan-bulan berikutnya harus dihasilkan
+/// aplikasi sendiri dari laporan lapangan, bukan dari berkas Aurora.
+///
+///   SEED_PERIODE=jan          pnpm db:seed
+///   SEED_PERIODE=jan,feb      pnpm db:seed
+///
+/// Tanpa variabel ini seluruh periode dibaca, seperti sebelumnya. Nama
+/// folder yang tidak dikenal MELEDAK, bukan diabaikan diam-diam — salah
+/// ketik di sini akan menghasilkan database yang sunyi-sunyi tidak lengkap.
+function pilihPeriode(): readonly Periode[] {
+  const raw = process.env.SEED_PERIODE?.trim()
+  if (!raw) return SEMUA_PERIODE
+  const diminta = raw.split(",").map((s) => s.trim().toLowerCase()).filter((s) => s !== "")
+  const dikenal = new Set(SEMUA_PERIODE.map((p) => p.folder))
+  const asing = diminta.filter((f) => !dikenal.has(f as Periode["folder"]))
+  if (asing.length > 0) {
+    throw new Error(
+      `SEED_PERIODE memuat folder yang tidak dikenal: ${asing.join(", ")}. Pilihannya: ${[...dikenal].join(", ")}`
+    )
+  }
+  // Filter atas SEMUA_PERIODE, bukan map atas input -> urutan kronologis
+  // tetap terjaga berapa pun urutan pengetikannya.
+  return SEMUA_PERIODE.filter((p) => diminta.includes(p.folder))
 }
 
-/// PBPK202605-PW5.csv — pasang baru & pemasangan kembali (mutasian: PB/PK).
-export interface PbpkRow {
-  nolg: string
-  nolangganan: string
-  nama: string
-  kd_kecamatan: string
-  kd_kelurahan: string
-  rt: string
-  rw: string
-  alamat: string
-  notelp: string
-  jmlpenghuni: string
-  nometer: string
-  kd_merkmeter: string
-  kd_ukmeter: string
-  tglaktif: string
-  sta_aktif: string
-  wilayah: string
-  kd_rute: string
-  updater: string
-  geo_long: string
-  goe_lat: string
-  kode_wilayah: string
-  kd_goltarif: string
-  no_urutrute: string
-  mutasian: string
+export const PERIODE_TERSEDIA: readonly Periode[] = pilihPeriode()
+
+function bacaOpsional<T>(folder: string, nama: string): T[] {
+  const jalur = join(DATA_DIR, folder, nama)
+  if (!existsSync(jalur)) return []
+  return parse(readFileSync(jalur, "utf-8"), {
+    delimiter: ";",
+    columns: true,
+    bom: true,
+    skip_empty_lines: true,
+    relax_column_count: true,
+  }) as T[]
 }
 
-/// r-nomor.csv — riwayat pemutusan sambungan (TSM/SPT) karena tunggakan
-/// atau permintaan pelanggan.
-export interface RNomorRow {
-  periode: string
-  jenis_pemutusan: string
-  nomor_pelanggan: string
-  nama: string
-  no_surat: string
-  tgl_permohonan: string
-  tgl_tutup: string
-  no_spt: string
-  tgl_spt: string
-  tgl_cabut: string
+export function readProgresCaterPeriode(folder: string): ProgresCaterRow[] {
+  return bacaOpsional<ProgresCaterRow>(folder, "ProgresCater-PW5.csv")
 }
 
+/// Gabungan periode yang DIPILIH (menghormati SEED_PERIODE).
+export function readProgresCaterSemua(): ProgresCaterRow[] {
+  return PERIODE_TERSEDIA.flatMap((p) => readProgresCaterPeriode(p.folder))
+}
+
+/// Gabungan SELURUH periode yang berkasnya ada — SENGAJA mengabaikan
+/// SEED_PERIODE.
+///
+/// Dipakai khusus untuk menurunkan TARIF. Blok tarif bukan data periode,
+/// melainkan data referensi yang kebetulan harus dipecahkan dari observasi:
+/// makin banyak titik (pemakaian -> harga), makin lengkap blok yang bisa
+/// dipastikan. Dengan Januari saja, golongan 2A1 hanya punya 6 observasi
+/// yang semuanya di atas 30 m3 — blok 1-3 tak terpecahkan, dan blok 4 ikut
+/// gugur karena ia butuh alas dari blok di bawahnya. Enam periode memberi
+/// 24 titik dan keempat bloknya terpecahkan.
+///
+/// Ini BUKAN mengimpor data periode lain: tidak satu pun baris pelanggan,
+/// pembacaan, atau tagihan dari periode di luar jendela yang masuk database.
+/// Yang diambil hanya pasangan angka untuk memecahkan harga per blok.
+export function readProgresCaterSemuaPeriodeUntukTarif(): ProgresCaterRow[] {
+  return SEMUA_PERIODE.flatMap((p) => readProgresCaterPeriode(p.folder))
+}
+
+/// Kompatibilitas step lama: dulu hanya ada SATU berkas di akar data/.
+/// Sekarang mengembalikan gabungan semua periode supaya step referensi
+/// tidak kehilangan wilayah/rute/pencatat yang cuma muncul di bulan
+/// tertentu.
 export function readProgresCater(): ProgresCaterRow[] {
-  return readCsv<ProgresCaterRow>("ProgresCater-PW5.csv")
-}
-
-export function readLapdatameter(): LapdatameterRow[] {
-  return readCsv<LapdatameterRow>("lapdatametertes.csv")
-}
-
-const PBPK_FILENAME = "PBPK202605-PW5.csv"
-
-export function readPbpk(): PbpkRow[] {
-  return readCsv<PbpkRow>(PBPK_FILENAME)
-}
-
-/// PBPK.csv TIDAK punya kolom "periode" sendiri (beda dari ProgresCater/
-/// r-nomor) — periodenya cuma tersirat di NAMA FILE ("PBPK202605-PW5.csv"
-/// -> 202605). WAJIB diambil dari nama file, BUKAN dari tglaktif (dua
-/// baris "PK" di data py tglaktif-nya adalah tanggal pasang ASLI sambungan
-/// lama, bisa puluhan tahun lalu — bukan tanggal mutasi bulan ini).
-export function getPbpkPeriode(): number {
-  const match = PBPK_FILENAME.match(/PBPK(\d{6})/)
-  if (!match) throw new Error(`Tidak bisa mengekstrak periode dari nama file ${PBPK_FILENAME}`)
-  return Number(match[1])
-}
-
-export function readRNomor(): RNomorRow[] {
-  return readCsv<RNomorRow>("r-nomor.csv")
+  return readProgresCaterSemua()
 }

@@ -1,11 +1,13 @@
-// metro.config.js — konfigurasi Metro untuk monorepo pnpm. Tanpa ini Metro
-// tidak "melihat" paket workspace (@workspace/mobile-ui) yang di-symlink dan
-// tidak menelusuri node_modules di root repo.
+// metro.config.js — konfigurasi Metro untuk monorepo pnpm + NativeWind.
+// Tanpa `withNativeWind` tidak ada pipeline CSS: class `className` TIDAK
+// ter-generate di release build (`bundleRelease`) sehingga komponen ter-render
+// tanpa style / tak terlihat di HP walau di dev tampak normal.
 //
-// Dua penyesuaian wajib untuk monorepo:
+// Dua penyesuaian monorepo:
 //   1. watchFolders → sertakan root repo supaya Metro memantau paket bersama.
 //   2. nodeModulesPaths → resolusi mencari di node_modules app DAN root.
 const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
 const path = require('path');
 
 const projectRoot = __dirname;
@@ -19,4 +21,4 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-module.exports = config;
+module.exports = withNativeWind(config, { input: './global.css' });

@@ -1,12 +1,16 @@
-// next-auth.d.ts — augmentasi tipe Auth.js untuk paket ini sendiri.
+// next-auth.d.ts — augmentasi tipe Auth.js, SUMBER UTAMA.
 //
-// CATATAN DRY: berkas ini sengaja diduplikasi di tiap compilation yang
-// memakai tipe next-auth (packages/auth, apps/web/types, apps/api/types).
-// Declaration merging TypeScript bersifat ambient dan hanya berlaku pada
-// .d.ts yang ikut dalam compilation itu — augmentasi dari dalam sebuah
-// package TIDAK otomatis merambat ke konsumen. Menyalinnya (isi identik)
-// jauh lebih andal daripada trik referensi lintas-package. Bila salah satu
-// diubah, samakan yang lain.
+// Berkas ini ditarik ke setiap program yang meng-compile ../auth.ts lewat
+// `/// <reference path="./types/next-auth.d.ts" />` di puncak berkas itu
+// (alasan lengkapnya ada di sana). Jadi konsumen TIDAK perlu menyalinnya:
+// apps/api dulu punya salinan sendiri yang justru tak berefek karena
+// apps/api tidak punya next-auth sebagai dependensi — salinan itu sudah
+// dihapus.
+//
+// apps/web/types/next-auth.d.ts masih ada dan isinya identik. Di sana ia
+// memang berfungsi (apps/web memakai next-auth langsung dan menyelesaikannya
+// ke salinan fisik yang sama), dan augmentasi identik aman menyatu. Bila
+// berkas ini diubah, samakan yang di apps/web.
 import { DefaultSession } from "next-auth"
 import type { Role } from "@workspace/db"
 

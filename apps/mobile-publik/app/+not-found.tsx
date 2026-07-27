@@ -1,6 +1,6 @@
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { PremiumBackground, useTheme } from '@workspace/mobile-ui';
+import { PremiumBackground, useTheme } from '@/components';
 
 export default function NotFoundScreen() {
   const { colors } = useTheme();

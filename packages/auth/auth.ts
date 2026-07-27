@@ -14,6 +14,20 @@
 // untuk cek "apakah ada session" di edge runtime. Jangan pernah mengarahkan
 // endpoint /api/auth/* ke auth.config.ts — authorize() di sana sengaja
 // selalu null.
+/// <reference path="./types/next-auth.d.ts" />
+// Referensi di atas WAJIB, bukan hiasan. Berkas ini ikut ter-compile ke dalam
+// program SETIAP app yang mengimpornya (apps/web, apps/api) karena paket ini
+// mengekspor .ts mentah. Augmentasi `declare module "next-auth"` hanya berlaku
+// bila .d.ts-nya ikut dalam program yang sama — dan tsconfig app hilir tidak
+// meng-include folder ini. Tanpa referensi ini, `user.role` di bawah gagal
+// dengan TS2339 saat `pnpm typecheck` dijalankan dari apps/api.
+//
+// Kenapa referensi (bukan menyalin .d.ts ke tiap app, seperti sebelumnya):
+// impor di dalam .d.ts diselesaikan RELATIF terhadap lokasi .d.ts itu sendiri,
+// jadi "next-auth" di sana selalu menunjuk salinan yang sama dengan yang
+// dipakai berkas ini. Salinan di apps/api/types/ justru TIDAK bisa bekerja —
+// apps/api tidak punya next-auth sebagai dependensi, sehingga augmentasinya
+// gagal me-merge dan diam-diam tak berefek (tersembunyi oleh skipLibCheck).
 import NextAuth, { type NextAuthConfig, type NextAuthResult } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"

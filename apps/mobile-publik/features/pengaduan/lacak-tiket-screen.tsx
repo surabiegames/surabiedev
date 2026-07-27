@@ -9,18 +9,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field } from '@/components/ui/field';
+import { Text as UIText } from '@/components/ui/text';
 import {
-  Alert,
   AppScaffold,
-  Button,
-  Card,
   MasterPalette as P,
   StatusBadge,
-  TextField,
   toneStatusPengaduan,
   useTheme,
-} from '@workspace/mobile-ui';
+} from '@/components';
 import {
   ApiException,
   formatWaktuLokal,
@@ -80,16 +82,36 @@ export function LacakTiketScreen() {
       onBack={() => router.back()}
       body={
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Card title="Nomor Tiket" description="Masukkan nomor tiket dari tanda terima pengaduan Anda, format TW-YYMM-XXXXXX.">
-            <View style={styles.form}>
-              <TextField value={nomor} onChangeText={setNomor} placeholder="TW-2607-XXXXXX" autoCapitalize="characters" error={errNomor} />
-              <Button onPress={() => lacak()} loading={memuat} leading={memuat ? undefined : <Ionicons name="search" size={16} color={colors.primaryForeground} />}>
-                {memuat ? 'Mencari…' : 'Lacak'}
-              </Button>
-            </View>
+          <Card>
+            <CardHeader>
+              <CardTitle>Nomor Tiket</CardTitle>
+              <CardDescription>
+                Masukkan nomor tiket dari tanda terima pengaduan Anda, format TW-YYMM-XXXXXX.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <View style={styles.form}>
+                <Field value={nomor} onChangeText={setNomor} placeholder="TW-2607-XXXXXX" autoCapitalize="characters" error={errNomor} />
+                <Button onPress={() => lacak()} disabled={memuat} className="h-11 w-full">
+                  {memuat ? (
+                    <ActivityIndicator size="small" color={colors.primaryForeground} />
+                  ) : (
+                    <Ionicons name="search" size={16} color={colors.primaryForeground} />
+                  )}
+                  <UIText>{memuat ? 'Mencari…' : 'Lacak'}</UIText>
+                </Button>
+              </View>
+            </CardContent>
           </Card>
 
-          {galat != null ? <View style={styles.spacer}><Alert variant="destructive" title="Tidak ditemukan" description={galat} /></View> : null}
+          {galat != null ? (
+            <View style={styles.spacer}>
+              <Alert icon={TriangleAlert} variant="destructive">
+                <AlertTitle>Tidak ditemukan</AlertTitle>
+                <AlertDescription>{galat}</AlertDescription>
+              </Alert>
+            </View>
+          ) : null}
 
           {hasil != null ? (
             <View style={styles.hasil}>
@@ -113,11 +135,19 @@ function DetailTiket({ hasil }: { hasil: LacakTiketResult }) {
   const { colors } = useTheme();
   const fotoValid = hasil.fotoPenyelesaianUrl != null && hasil.fotoPenyelesaianUrl.startsWith('http');
   return (
-    <Card
-      title={hasil.judul}
-      description={`${hasil.nomorTiket} · ${labelDari(labelJenisPengaduan, hasil.jenis)}`}
-      trailing={<StatusBadge label={labelDari(labelStatusPengaduan, hasil.status)} tone={toneStatusPengaduan(hasil.status)} />}
-    >
+    <Card>
+      <CardHeader>
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="flex-1">
+            <CardTitle>{hasil.judul}</CardTitle>
+            <CardDescription>
+              {`${hasil.nomorTiket} · ${labelDari(labelJenisPengaduan, hasil.jenis)}`}
+            </CardDescription>
+          </View>
+          <StatusBadge label={labelDari(labelStatusPengaduan, hasil.status)} tone={toneStatusPengaduan(hasil.status)} />
+        </View>
+      </CardHeader>
+      <CardContent>
       <View style={styles.detail}>
         {hasil.ditugaskanKe != null ? (
           <BarisIkon ikon="person-circle" teks={`Ditangani: ${hasil.ditugaskanKe}`} />
@@ -143,6 +173,7 @@ function DetailTiket({ hasil }: { hasil: LacakTiketResult }) {
           />
         ) : null}
       </View>
+      </CardContent>
     </Card>
   );
 }
@@ -214,7 +245,11 @@ function AksiPelapor({
 
   if (mode === 'nilai') {
     return (
-      <Card title="Seberapa puas Anda dengan penanganannya?">
+      <Card>
+        <CardHeader>
+          <CardTitle>Seberapa puas Anda dengan penanganannya?</CardTitle>
+        </CardHeader>
+        <CardContent>
         <View style={styles.aksiBody}>
           <View style={styles.bintangRow}>
             {[1, 2, 3, 4, 5].map((n) => (
@@ -223,50 +258,92 @@ function AksiPelapor({
               </Pressable>
             ))}
           </View>
-          <TextField value={komentar} onChangeText={setKomentar} placeholder="Ceritakan pengalaman Anda (opsional)" multiline editable={!mengirim} />
-          {galat != null ? <Alert variant="destructive" title="Gagal" description={galat} /> : null}
+          <Field value={komentar} onChangeText={setKomentar} placeholder="Ceritakan pengalaman Anda (opsional)" multiline editable={!mengirim} />
+          {galat != null ? (
+            <Alert icon={TriangleAlert} variant="destructive">
+              <AlertTitle>Gagal</AlertTitle>
+              <AlertDescription>{galat}</AlertDescription>
+            </Alert>
+          ) : null}
           <View style={styles.aksiTombol}>
             <View style={styles.aksiUtama}>
-              <Button onPress={kirimNilai} loading={mengirim} disabled={rating === 0} leading={mengirim ? undefined : <Ionicons name="thumbs-up" size={16} color={colors.primaryForeground} />}>
-                {mengirim ? 'Mengirim…' : 'Kirim & tutup tiket'}
+              <Button onPress={kirimNilai} disabled={mengirim || rating === 0} className="h-11 w-full">
+                {mengirim ? (
+                  <ActivityIndicator size="small" color={colors.primaryForeground} />
+                ) : (
+                  <Ionicons name="thumbs-up" size={16} color={colors.primaryForeground} />
+                )}
+                <UIText>{mengirim ? 'Mengirim…' : 'Kirim & tutup tiket'}</UIText>
               </Button>
             </View>
-            <Button variant="ghost" block={false} disabled={mengirim} onPress={() => setMode('pilih')}>Batal</Button>
+            <Button variant="ghost" disabled={mengirim} onPress={() => setMode('pilih')} className="h-11">
+              <UIText>Batal</UIText>
+            </Button>
           </View>
         </View>
+        </CardContent>
       </Card>
     );
   }
 
   if (mode === 'buka') {
     return (
-      <Card title="Apa yang masih bermasalah?">
+      <Card>
+        <CardHeader>
+          <CardTitle>Apa yang masih bermasalah?</CardTitle>
+        </CardHeader>
+        <CardContent>
         <View style={styles.aksiBody}>
-          <TextField value={alasan} onChangeText={setAlasan} placeholder="Mis. air sempat mengalir tapi mati lagi keesokan harinya…" multiline editable={!mengirim} description="Tiket yang sama akan dibuka kembali — riwayat penanganannya tidak hilang." />
-          {galat != null ? <Alert variant="destructive" title="Gagal" description={galat} /> : null}
+          <Field value={alasan} onChangeText={setAlasan} placeholder="Mis. air sempat mengalir tapi mati lagi keesokan harinya…" multiline editable={!mengirim} description="Tiket yang sama akan dibuka kembali — riwayat penanganannya tidak hilang." />
+          {galat != null ? (
+            <Alert icon={TriangleAlert} variant="destructive">
+              <AlertTitle>Gagal</AlertTitle>
+              <AlertDescription>{galat}</AlertDescription>
+            </Alert>
+          ) : null}
           <View style={styles.aksiTombol}>
             <View style={styles.aksiUtama}>
-              <Button variant="destructive" onPress={kirimBukaKembali} loading={mengirim} leading={mengirim ? undefined : <Ionicons name="refresh" size={16} color={colors.destructiveForeground} />}>
-                {mengirim ? 'Mengirim…' : 'Buka kembali tiket'}
+              <Button variant="destructive" onPress={kirimBukaKembali} disabled={mengirim} className="h-11 w-full">
+                {mengirim ? (
+                  <ActivityIndicator size="small" color={colors.destructiveForeground} />
+                ) : (
+                  <Ionicons name="refresh" size={16} color={colors.destructiveForeground} />
+                )}
+                <UIText>{mengirim ? 'Mengirim…' : 'Buka kembali tiket'}</UIText>
               </Button>
             </View>
-            <Button variant="ghost" block={false} disabled={mengirim} onPress={() => setMode('pilih')}>Batal</Button>
+            <Button variant="ghost" disabled={mengirim} onPress={() => setMode('pilih')} className="h-11">
+              <UIText>Batal</UIText>
+            </Button>
           </View>
         </View>
+        </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card title="Apakah masalah Anda sudah benar-benar selesai?" description="Tiket ini baru ditutup setelah Anda yang mengonfirmasi — bukan petugas.">
+    <Card>
+      <CardHeader>
+        <CardTitle>Apakah masalah Anda sudah benar-benar selesai?</CardTitle>
+        <CardDescription>Tiket ini baru ditutup setelah Anda yang mengonfirmasi — bukan petugas.</CardDescription>
+      </CardHeader>
+      <CardContent>
       <View style={styles.pilihRow}>
         {bisaDinilai ? (
-          <Button block={false} onPress={() => setMode('nilai')} leading={<Ionicons name="thumbs-up" size={16} color={colors.primaryForeground} />}>Ya, sudah selesai</Button>
+          <Button onPress={() => setMode('nilai')} className="h-11">
+            <Ionicons name="thumbs-up" size={16} color={colors.primaryForeground} />
+            <UIText>Ya, sudah selesai</UIText>
+          </Button>
         ) : null}
         {bisaDibukaKembali ? (
-          <Button variant="outline" block={false} onPress={() => setMode('buka')} leading={<Ionicons name="refresh" size={16} color={colors.foreground} />}>Belum, masih bermasalah</Button>
+          <Button variant="outline" onPress={() => setMode('buka')} className="h-11">
+            <Ionicons name="refresh" size={16} color={colors.foreground} />
+            <UIText>Belum, masih bermasalah</UIText>
+          </Button>
         ) : null}
       </View>
+      </CardContent>
     </Card>
   );
 }
@@ -305,10 +382,14 @@ function ChatTiket({
   };
 
   return (
-    <Card
-      title="Percakapan dengan Petugas"
-      description={bisaChat ? 'Balasan petugas muncul di sini setiap kali Anda memuat ulang tiket.' : 'Tiket sudah ditutup — percakapan berakhir.'}
-    >
+    <Card>
+      <CardHeader>
+        <CardTitle>Percakapan dengan Petugas</CardTitle>
+        <CardDescription>
+          {bisaChat ? 'Balasan petugas muncul di sini setiap kali Anda memuat ulang tiket.' : 'Tiket sudah ditutup — percakapan berakhir.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
       <View style={styles.chatBody}>
         {entri.length === 0 ? (
           <Text style={[styles.kosong, { color: colors.mutedForeground }]}>Belum ada pesan.</Text>
@@ -318,13 +399,21 @@ function ChatTiket({
         {bisaChat ? (
           <View style={styles.chatInput}>
             <View style={styles.chatField}>
-              <TextField value={pesan} onChangeText={setPesan} placeholder="Tulis pesan…" editable={!mengirim} />
+              <Field value={pesan} onChangeText={setPesan} placeholder="Tulis pesan…" editable={!mengirim} />
             </View>
-            <Button block={false} onPress={kirim} loading={mengirim} leading={mengirim ? undefined : <Ionicons name="paper-plane" size={15} color={colors.primaryForeground} />}>Kirim</Button>
+            <Button onPress={kirim} disabled={mengirim} className="h-11">
+              {mengirim ? (
+                <ActivityIndicator size="small" color={colors.primaryForeground} />
+              ) : (
+                <Ionicons name="paper-plane" size={15} color={colors.primaryForeground} />
+              )}
+              <UIText>Kirim</UIText>
+            </Button>
           </View>
         ) : null}
         {galat != null ? <Text style={[styles.chatGalat, { color: colors.destructive }]}>{galat}</Text> : null}
       </View>
+      </CardContent>
     </Card>
   );
 }
@@ -366,7 +455,7 @@ function Linimasa({ entri }: { entri: TicketTimelineEntry[] }) {
       {entri.length === 0 ? (
         <Text style={[styles.kosong, { color: colors.mutedForeground }]}>Belum ada pembaruan.</Text>
       ) : (
-        <Card>
+        <Card className="gap-0 p-4">
           {entri.map((e, i) => (
             <BarisLinimasa key={i} entri={e} terakhir={i === entri.length - 1} />
           ))}

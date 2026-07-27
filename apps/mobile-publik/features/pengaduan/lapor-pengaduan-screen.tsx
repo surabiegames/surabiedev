@@ -10,18 +10,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import {
-  Alert,
-  AppScaffold,
-  Button,
-  Dialog,
-  PhotoBox,
-  Select,
-  TextField,
-  useTheme,
-  type SelectOption,
-} from '@workspace/mobile-ui';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { MapPin, TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { SelectField, type SelectFieldOption } from '@/components/ui/select-field';
+import { Text as UIText } from '@/components/ui/text';
+import { AppDialog } from '@/components/ui/app-dialog';
+import { AppScaffold, PhotoBox, useTheme } from '@/components';
 import {
   ApiException,
   ComplaintDraft,
@@ -35,7 +32,7 @@ import { LanggananSayaCache } from '../langganan/repository';
 import { ambilFoto, ambilVideo, MediaError, type SumberMedia } from '../shared/media';
 import { buatLaporPengaduanRepository } from './repository';
 
-const OPSI_JENIS: SelectOption[] = Object.entries(labelJenisPengaduan).map(([value, label]) => ({ value, label }));
+const OPSI_JENIS: SelectFieldOption[] = Object.entries(labelJenisPengaduan).map(([value, label]) => ({ value, label }));
 
 export function LaporPengaduanScreen() {
   const router = useRouter();
@@ -148,25 +145,28 @@ export function LaporPengaduanScreen() {
       body={
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
-            <Select label="Kategori Pengaduan" placeholder="Pilih kategori…" options={OPSI_JENIS} value={jenis} onValueChange={setJenis} error={errors.jenis} />
-            <TextField label="Judul" placeholder="Ringkasan singkat masalah" value={judul} onChangeText={setJudul} error={errors.judul} />
-            <TextField label="Deskripsi" placeholder="Ceritakan detailnya: sejak kapan, seberapa parah, ciri lokasi…" value={deskripsi} onChangeText={setDeskripsi} error={errors.deskripsi} multiline />
+            <SelectField label="Kategori Pengaduan" placeholder="Pilih kategori…" options={OPSI_JENIS} value={jenis} onValueChange={setJenis} error={errors.jenis} />
+            <Field label="Judul" placeholder="Ringkasan singkat masalah" value={judul} onChangeText={setJudul} error={errors.judul} />
+            <Field label="Deskripsi" placeholder="Ceritakan detailnya: sejak kapan, seberapa parah, ciri lokasi…" value={deskripsi} onChangeText={setDeskripsi} error={errors.deskripsi} multiline />
 
             {wajibKoordinat ? (
               <>
-                <Alert title="Lokasi wajib untuk kebocoran" icon="location" description="Isi koordinat titik kebocoran agar petugas dapat menemukannya. Salin dari aplikasi peta di ponsel Anda." />
+                <Alert icon={MapPin}>
+                  <AlertTitle>Lokasi wajib untuk kebocoran</AlertTitle>
+                  <AlertDescription>Isi koordinat titik kebocoran agar petugas dapat menemukannya. Salin dari aplikasi peta di ponsel Anda.</AlertDescription>
+                </Alert>
                 <View style={styles.row}>
                   <View style={styles.col}>
-                    <TextField label="Latitude" placeholder="-6.9147" value={lat} onChangeText={setLat} keyboardType="numbers-and-punctuation" error={errors.lat} />
+                    <Field label="Latitude" placeholder="-6.9147" value={lat} onChangeText={setLat} keyboardType="numbers-and-punctuation" error={errors.lat} />
                   </View>
                   <View style={styles.col}>
-                    <TextField label="Longitude" placeholder="107.6098" value={lng} onChangeText={setLng} keyboardType="numbers-and-punctuation" error={errors.lng} />
+                    <Field label="Longitude" placeholder="107.6098" value={lng} onChangeText={setLng} keyboardType="numbers-and-punctuation" error={errors.lng} />
                   </View>
                 </View>
               </>
             ) : null}
 
-            <TextField label="Alamat Kejadian (opsional)" placeholder="Jalan, RT/RW, patokan terdekat" value={alamatKejadian} onChangeText={setAlamatKejadian} />
+            <Field label="Alamat Kejadian (opsional)" placeholder="Jalan, RT/RW, patokan terdekat" value={alamatKejadian} onChangeText={setAlamatKejadian} />
 
             <View style={styles.mediaGroup}>
               <Text style={[styles.mediaLabel, { color: colors.foreground }]}>Foto Bukti (opsional)</Text>
@@ -180,9 +180,9 @@ export function LaporPengaduanScreen() {
               <Text style={[styles.mediaHint, { color: colors.mutedForeground }]}>Klip pendek 30–60 detik (maks 60) — mis. aliran air bocor. Ditampilkan dalam kualitas teroptimasi.</Text>
             </View>
 
-            <TextField label="Nama Pelapor" placeholder="Nama lengkap Anda" value={pelapor} onChangeText={setPelapor} error={errors.pelapor} />
-            <TextField label="Nomor HP / Kontak" placeholder="08xxxxxxxxxx" value={kontakPelapor} onChangeText={setKontakPelapor} keyboardType="phone-pad" error={errors.kontakPelapor} />
-            <TextField
+            <Field label="Nama Pelapor" placeholder="Nama lengkap Anda" value={pelapor} onChangeText={setPelapor} error={errors.pelapor} />
+            <Field label="Nomor HP / Kontak" placeholder="08xxxxxxxxxx" value={kontakPelapor} onChangeText={setKontakPelapor} keyboardType="phone-pad" error={errors.kontakPelapor} />
+            <Field
               label="Nomor Langganan (opsional)"
               placeholder="11 digit, bila Anda pelanggan"
               description="Membantu petugas menautkan pengaduan ke data langganan."
@@ -192,21 +192,27 @@ export function LaporPengaduanScreen() {
               error={errors.nomorLangganan}
             />
 
-            {galat != null ? <Alert variant="destructive" title="Gagal mengirim" description={galat} /> : null}
+            {galat != null ? (
+              <Alert icon={TriangleAlert} variant="destructive">
+                <AlertTitle>Gagal mengirim</AlertTitle>
+                <AlertDescription>{galat}</AlertDescription>
+              </Alert>
+            ) : null}
 
-            <Button
-              onPress={kirim}
-              loading={mengirim}
-              leading={mengirim ? undefined : <Ionicons name="paper-plane" size={16} color={colors.primaryForeground} />}
-            >
-              {mengirim ? 'Mengirim…' : 'Kirim Pengaduan'}
+            <Button onPress={kirim} disabled={mengirim} className="h-11 w-full">
+              {mengirim ? (
+                <ActivityIndicator size="small" color={colors.primaryForeground} />
+              ) : (
+                <Ionicons name="paper-plane" size={16} color={colors.primaryForeground} />
+              )}
+              <UIText>{mengirim ? 'Mengirim…' : 'Kirim Pengaduan'}</UIText>
             </Button>
           </View>
         </ScrollView>
       }
     >
       {/* Dialog pilih sumber foto/video */}
-      <Dialog
+      <AppDialog
         visible={dialogMedia != null}
         onDismiss={() => setDialogMedia(null)}
         title={dialogMedia === 'video' ? 'Video Bukti' : 'Foto Bukti'}
@@ -217,18 +223,23 @@ export function LaporPengaduanScreen() {
         }
         actions={
           <>
-            <Button onPress={() => pilihMedia('kamera')}>Kamera</Button>
-            <Button variant="outline" onPress={() => pilihMedia('galeri')}>Galeri</Button>
+            <Button onPress={() => pilihMedia('kamera')} className="h-11 w-full">
+              <UIText>Kamera</UIText>
+            </Button>
+            <Button variant="outline" onPress={() => pilihMedia('galeri')} className="h-11 w-full">
+              <UIText>Galeri</UIText>
+            </Button>
             {(dialogMedia === 'foto' && fotoUri != null) || (dialogMedia === 'video' && videoUri != null) ? (
               <Button
                 variant="destructive"
+                className="h-11 w-full"
                 onPress={() => {
                   if (dialogMedia === 'foto') setFotoUri(null);
                   else setVideoUri(null);
                   setDialogMedia(null);
                 }}
               >
-                Hapus
+                <UIText>Hapus</UIText>
               </Button>
             ) : null}
           </>
@@ -236,7 +247,7 @@ export function LaporPengaduanScreen() {
       />
 
       {/* Dialog sukses */}
-      <Dialog
+      <AppDialog
         visible={tanda != null}
         onDismiss={() => setTanda(null)}
         title="Pengaduan Diterima"
@@ -254,15 +265,18 @@ export function LaporPengaduanScreen() {
             {!sudahLogin ? (
               <Button
                 variant="outline"
+                className="h-11 w-full"
                 onPress={() => {
                   setTanda(null);
                   router.push('/daftar');
                 }}
               >
-                Daftar Akun
+                <UIText>Daftar Akun</UIText>
               </Button>
             ) : null}
-            <Button onPress={() => setTanda(null)}>Selesai</Button>
+            <Button onPress={() => setTanda(null)} className="h-11 w-full">
+              <UIText>Selesai</UIText>
+            </Button>
           </>
         }
       />

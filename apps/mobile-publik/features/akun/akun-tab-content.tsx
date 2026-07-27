@@ -12,7 +12,10 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, PremiumBackground, useTheme } from '@workspace/mobile-ui';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Text as UIText } from '@/components/ui/text';
+import { PremiumBackground, useTheme } from '@/components';
 import { SesiWarga } from '@workspace/mobile-core';
 
 import { LanggananSayaCache } from '../langganan/repository';
@@ -43,7 +46,7 @@ export function AkunTabContent() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]} keyboardShouldPersistTaps="handled">
         {akun != null ? (
-          <Card style={styles.profilCard}>
+          <Card className="gap-0" style={styles.profilCard}>
             <View style={styles.profilRow}>
               <View style={[styles.avatar, { backgroundColor: colors.primary, borderRadius: radius.md }]}>
                 <Ionicons name="person" size={24} color={colors.primaryForeground} />
@@ -56,11 +59,13 @@ export function AkunTabContent() {
               </View>
             </View>
             <View style={styles.profilAksi}>
-              <Button variant="outline" onPress={() => router.push('/kelola-langganan')} leading={<Ionicons name="card-outline" size={16} color={colors.foreground} />}>
-                Kelola Nomor Langganan
+              <Button variant="outline" onPress={() => router.push('/kelola-langganan')} className="h-11 w-full">
+                <Ionicons name="card-outline" size={16} color={colors.foreground} />
+                <UIText>Kelola Nomor Langganan</UIText>
               </Button>
-              <Button variant="outline" onPress={keluar} leading={<Ionicons name="log-out-outline" size={16} color={colors.foreground} />}>
-                Keluar
+              <Button variant="outline" onPress={keluar} className="h-11 w-full">
+                <Ionicons name="log-out-outline" size={16} color={colors.foreground} />
+                <UIText>Keluar</UIText>
               </Button>
             </View>
           </Card>

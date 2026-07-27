@@ -3,7 +3,19 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
-@source "../../../../apps/**/*.{ts,tsx}";
+/* JANGAN melebarkan @source sampai basisnya jadi folder yang MEMUAT
+   node_modules (mis. "apps" atau "apps/web" polos). Di pnpm, node_modules
+   tiap app adalah kebun symlink ke node_modules/.pnpm — Turbopack memantau
+   folder basis glob sebagai dependensi direktori dan menelusurinya menembus
+   symlink ke seluruh graf dependensi (2 GB, bersiklus). Akibatnya dev server
+   meledak dari ~250 MB ke >4 GB dalam ~2 detik pada request halaman PERTAMA
+   lalu kena OOM killer. Terukur: basis "apps" = OOM, basis per-folder di
+   bawah ini = puncak ~640 MB.
+   apps/api tidak memakai CSS ini dan apps/mobile-publik punya Tailwind v3
+   sendiri, jadi cukup tiga folder sumber apps/web di bawah. */
+@source "../../../../apps/web/app/**/*.{ts,tsx}";
+@source "../../../../apps/web/components/**/*.{ts,tsx}";
+@source "../../../../apps/web/features/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
 @theme inline {

@@ -10,16 +10,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { TriangleAlert } from 'lucide-react-native';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Text as UIText } from '@/components/ui/text';
 import {
-  Alert,
   AppScaffold,
-  Button,
   GlassPanel,
   IconButton,
   StatusBadge,
   toneStatusPengaduan,
   useTheme,
-} from '@workspace/mobile-ui';
+} from '@/components';
 import {
   ApiException,
   formatWaktuLokal,
@@ -87,8 +89,9 @@ export function LaporanSayaScreen({ tab = false }: { tab?: boolean } = {}) {
               Masuk untuk melihat semua laporan pengaduan yang Anda kirim.
             </Text>
             <View style={styles.retry}>
-              <Button onPress={() => (tab ? router.navigate('/(tabs)/akun') : router.replace('/masuk'))} leading={<Ionicons name="log-in" size={16} color={colors.primaryForeground} />}>
-                Masuk / Daftar
+              <Button onPress={() => (tab ? router.navigate('/(tabs)/akun') : router.replace('/masuk'))} className="h-11 w-full">
+                <Ionicons name="log-in" size={16} color={colors.primaryForeground} />
+                <UIText>Masuk / Daftar</UIText>
               </Button>
             </View>
           </View>
@@ -110,24 +113,24 @@ export function LaporanSayaScreen({ tab = false }: { tab?: boolean } = {}) {
           </View>
         ) : galat != null ? (
           <ScrollView contentContainerStyle={styles.scroll}>
-            <Alert
-              variant="destructive"
-              title={tidakSah ? 'Sesi berakhir' : 'Gagal memuat laporan'}
-              description={
-                tidakSah
+            <Alert icon={TriangleAlert} variant="destructive">
+              <AlertTitle>{tidakSah ? 'Sesi berakhir' : 'Gagal memuat laporan'}</AlertTitle>
+              <AlertDescription>
+                {tidakSah
                   ? 'Sesi Anda sudah berakhir — masuk kembali untuk melihat laporan Anda.'
                   : ApiException.is(galat)
                     ? galat.message
-                    : 'Terjadi kesalahan tak terduga.'
-              }
-            />
+                    : 'Terjadi kesalahan tak terduga.'}
+              </AlertDescription>
+            </Alert>
             <View style={styles.retry}>
               <Button
                 variant="outline"
+                className="h-11 w-full"
                 onPress={tidakSah ? perluMasuk : () => muat(true)}
-                leading={<Ionicons name={tidakSah ? 'log-in' : 'refresh'} size={16} color={colors.foreground} />}
               >
-                {tidakSah ? 'Masuk Lagi' : 'Coba Lagi'}
+                <Ionicons name={tidakSah ? 'log-in' : 'refresh'} size={16} color={colors.foreground} />
+                <UIText>{tidakSah ? 'Masuk Lagi' : 'Coba Lagi'}</UIText>
               </Button>
             </View>
           </ScrollView>

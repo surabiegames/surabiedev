@@ -1,0 +1,130 @@
+{
+  "startedAt": "2026-07-25T08:28:39.955Z",
+  "finishedAt": "2026-07-25T08:30:06.853Z",
+  "counts": {
+    "05-pelanggan": {
+      "created": 19,
+      "updated": 22523,
+      "unchanged": 11,
+      "skipped": 0
+    }
+  },
+  "statusChanges": [
+    {
+      "nomorLangganan": "00902500750",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00406150314",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00401300870",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00904911890",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00900900719",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00804500350",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00904690085",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00704200550",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00901330102",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00401200330",
+      "from": null,
+      "to": "TUTUP_SEMENTARA",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan TSM) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00403520485",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00903330170",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00904800764",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00907000990",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00908220265",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00908220270",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00908220280",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00908220300",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    },
+    {
+      "nomorLangganan": "00908220395",
+      "from": null,
+      "to": "TUTUP_SPT",
+      "reason": "pelanggan dibuat dari r-nomor (pemutusan SPT) — tidak ada di ProgresCater karena sudah keluar dari closing"
+    }
+  ],
+  "pemutusanNeedsReview": [],
+  "issues": []
+}

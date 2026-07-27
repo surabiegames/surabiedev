@@ -1,0 +1,39 @@
+# Postgres + PostGIS lokal untuk pengujian siklus penuh.
+#
+# KENAPA ADA: uji siklus bulanan menulis dan menghapus ratusan ribu baris
+# berulang kali. Melakukannya di Neon paket gratis menghabiskan kuota untuk
+# pekerjaan yang sifatnya sekali buang, dan `DELETE` di Postgres tidak
+# langsung mengembalikan ruang (baris cuma ditandai mati sampai VACUUM,
+# sementara Neon tetap menghitung riwayat WAL-nya).
+#
+# PostGIS WAJIB, bukan opsional: migrasi pertama membuat `CREATE EXTENSION
+# postgis` dan tabel Pelanggan punya kolom `geometry(Point, 4326)`. Image
+# postgres polos akan gagal di migrasi paling awal.
+#
+#   docker compose up -d
+#   DATABASE_URL=postgresql://surabie:surabie@localhost:5433/surabiedev \
+#     pnpm --filter @workspace/db db:deploy
+#
+# Port 5433 (bukan 5432) supaya tidak bentrok dengan Postgres yang mungkin
+# sudah terpasang di mesin ini.
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    container_name: surabiedev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: surabie
+      POSTGRES_PASSWORD: surabie
+      POSTGRES_DB: surabiedev
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U surabie -d surabiedev"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  db-data:

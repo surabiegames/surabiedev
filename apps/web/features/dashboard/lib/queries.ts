@@ -16,6 +16,10 @@ import "server-only"
 // pemakai, bukan IP server.
 import { prisma } from "@workspace/db"
 import { dateToPeriode } from "@workspace/domain/periode"
+// Impor STATIS, bukan `await import()` di dalam fungsi: impor dinamis membuat
+// resolusinya baru diuji saat halaman dijalankan, sehingga kesalahan resolusi
+// lolos dari typecheck DAN build lalu baru meledak di layar operator.
+import { periksaKesehatan } from "@workspace/server/kesehatan"
 
 async function periodeTerakhir(): Promise<Date | null> {
   const baris = await prisma.tagihan.findFirst({ orderBy: { periode: "desc" }, select: { periode: true } })
@@ -103,4 +107,113 @@ export async function ambilPerluTindakan() {
     }),
   ])
   return { pengaduan, laporanMandiri }
+}
+
+/// Riwayat periode penagihan untuk layar closing. Dibaca DI SERVER (bukan
+/// lewat effect di client) mengikuti alasan di kepala berkas ini: halaman
+/// dirender di server yang sama dengan API-nya, jadi render awal tidak perlu
+/// perjalanan HTTP ke diri sendiri. Layar closing tetap memuat ulang daftar
+/// ini lewat /api/v1/closing SETELAH menutup/membuka periode — di situ
+/// memang butuh refresh tanpa reload halaman.
+export async function ambilRiwayatPeriode() {
+  const rows = await prisma.periodePenagihan.findMany({
+    orderBy: { periode: "desc" },
+    take: 36,
+    include: {
+      ditutupBy: { select: { id: true, name: true } },
+      dibukaBy: { select: { id: true, name: true } },
+    },
+  })
+  // Bentuknya disamakan PERSIS dengan respons GET /api/v1/closing (tanggal
+  // sebagai string ISO, BigInt sebagai string) supaya komponen client bisa
+  // memakai satu tipe untuk data awal DAN data hasil refresh.
+  return rows.map((r) => ({
+    id: r.id,
+    periode: r.periode,
+    status: r.status,
+    tanggalJatuhTempo: r.tanggalJatuhTempo?.toISOString() ?? null,
+    ditutupAt: r.ditutupAt?.toISOString() ?? null,
+    dibukaAt: r.dibukaAt?.toISOString() ?? null,
+    alasanBuka: r.alasanBuka,
+    jumlahSL: r.jumlahSL,
+    totalM3: r.totalM3,
+    totalTagihan: r.totalTagihan?.toString() ?? null,
+    ditutupBy: r.ditutupBy,
+    dibukaBy: r.dibukaBy,
+  }))
+}
+
+/// Laporan kesehatan data untuk render awal halaman — dibaca di server
+/// (alasan sama seperti di kepala berkas ini). Halaman tetap bisa memuat
+/// ulang lewat /api/v1/kesehatan setelah perbaikan dijalankan.
+export async function ambilLaporanKesehatan() {
+  return periksaKesehatan()
+}
+
+/// Sambungan yang perlu dipetakan ke rute — dibaca di server untuk render
+/// awal, sama seperti query lain di berkas ini. Bentuknya disamakan dengan
+/// GET /api/v1/pelanggan/perlu-rute supaya komponen client bisa memakai satu
+/// tipe untuk data awal DAN hasil muat ulang.
+/// `periode` opsional: render awal halaman belum tahu periode kerjanya, dan
+/// klien memuat ulang sendiri begitu tahu. Tanpa periode, daftar ini hanya
+/// memuat sambungan tanpa rute — perilaku lama, dan itu memang benar sebagai
+/// tampilan pertama.
+export async function ambilSambunganPerluRute(periode?: number) {
+  const [tanpaRute, ruteTanpaPencatat, rute] = await Promise.all([
+    prisma.pelanggan.findMany({
+      where: { deletedAt: null, status: "AKTIF", ruteId: null },
+      select: {
+        id: true, nomorLangganan: true, nama: true, alamat: true,
+        rt: true, rw: true, ruteId: true, noUrutRute: true,
+        kelurahan: { select: { nama: true } },
+        rute: { select: { kode: true } },
+        // Sudah punya laporan periode ini? Itu penanda "pekerjaannya selesai"
+        // — barisnya tetap ditampilkan supaya rutenya masih bisa dikoreksi,
+        // tapi tidak lagi dihitung sebagai pekerjaan yang menunggu.
+        laporanHarian: periode
+          ? { where: { periode }, select: { id: true }, take: 1 }
+          : { where: { id: "-" }, select: { id: true }, take: 1 },
+      },
+      orderBy: { nomorLangganan: "asc" },
+      take: 500,
+    }),
+    prisma.pelanggan.findMany({
+      where: { deletedAt: null, status: "AKTIF", ruteId: { not: null }, rute: { penugasanRute: { none: {} } } },
+      select: {
+        id: true, nomorLangganan: true, nama: true, alamat: true,
+        rt: true, rw: true, ruteId: true, noUrutRute: true,
+        kelurahan: { select: { nama: true } },
+        rute: { select: { kode: true } },
+      },
+      orderBy: { nomorLangganan: "asc" },
+      take: 500,
+    }),
+    prisma.rute.findMany({
+      select: { id: true, kode: true, penugasanRute: { select: { pencatat: { select: { namaLapangan: true } } }, take: 1 } },
+      orderBy: { kode: "asc" },
+    }),
+  ])
+  return {
+    // `kelurahan` diratakan jadi teks — layar hanya menampilkannya, dan
+    // objek bersarang untuk satu nama cuma menambah kedalaman yang harus
+    // dibongkar lagi di sisi klien.
+    // kodeRute DIAMBIL dari relasinya, bukan dipaksa null. Dulu daftar ini
+    // hanya berisi sambungan tanpa rute sehingga null selalu benar; sejak ia
+    // juga memuat seluruh PBPK periode berjalan, memaksa null menyembunyikan
+    // rute yang SUDAH terisi — persis yang perlu dilihat operator untuk tahu
+    // apakah rutenya keliru.
+    tanpaRute: tanpaRute.map(({ kelurahan, rute, laporanHarian, ...p }) => ({
+      ...p,
+      kelurahan: kelurahan?.nama ?? null,
+      kodeRute: rute?.kode ?? null,
+      sudahDicatat: laporanHarian.length > 0,
+    })),
+    ruteTanpaPencatat: ruteTanpaPencatat.map(({ rute, kelurahan, ...p }) => ({
+      ...p,
+      kelurahan: kelurahan?.nama ?? null,
+      kodeRute: rute?.kode ?? null,
+      sudahDicatat: false,
+    })),
+    rute: rute.map((r) => ({ id: r.id, kode: r.kode, pencatat: r.penugasanRute[0]?.pencatat.namaLapangan ?? null })),
+  }
 }

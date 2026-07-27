@@ -39,12 +39,22 @@ export function PilihPeriode({
 
 export function RingkasanVerifikasi({
   stats,
+  periode,
 }: {
   stats: StatsVerifikasi | null;
+  /// Periode yang sedang dihitung kartu-kartu ini.
+  ///
+  /// KENAPA DITAMPILKAN. Kartu ini dan tabel di bawahnya pernah memakai state
+  /// periode yang berbeda: tabel menunjukkan Februari sementara kartu masih
+  /// menghitung Januari, tanpa satu pun tanda bahwa keduanya bicara soal bulan
+  /// yang berlainan. Sekarang periodenya satu, dan namanya ditulis di kartu
+  /// supaya ketidakcocokan semacam itu tidak bisa lagi lolos tanpa terlihat.
+  periode: number | null;
 }) {
   const total = stats?.total ?? 0;
   const selesai = (stats?.diverifikasi ?? 0) + (stats?.ditolak ?? 0);
   const progres = total > 0 ? Math.round((selesai / total) * 100) : 0;
+  const labelPeriode = periode ? `Periode ${formatPeriode(periode)}` : "Semua periode";
 
   return (
     <div className="grid grid-cols-1 gap-px border border-border/70 bg-border/70 sm:grid-cols-2 lg:grid-cols-4">
@@ -52,13 +62,13 @@ export function RingkasanVerifikasi({
         label="Total laporan"
         nilai={total.toLocaleString("id-ID")}
         icon={ClipboardList}
-        keterangan="Sesuai filter periode"
+        keterangan={labelPeriode}
       />
       <StatCard
         label="Menunggu"
         nilai={(stats?.menunggu ?? 0).toLocaleString("id-ID")}
         icon={Hourglass}
-        keterangan="Belum diverifikasi"
+        keterangan={`Belum diverifikasi · ${labelPeriode}`}
         nada={(stats?.menunggu ?? 0) > 0 ? "perhatian" : "netral"}
       />
       <StatCard

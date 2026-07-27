@@ -1,22 +1,22 @@
 /**
  * kartu-langganan.tsx — "kartu pelanggan" satu nomor langganan (padanan
- * widgets/kartu_langganan.dart): gradien Slate → Sky → Emerald (3 warna
- * paten kalian), disusun seperti kartu resmi (kop berlogo, nomor sebagai
- * tokoh utama, identitas & status di kaki).
+ * widgets/kartu_langganan.dart): gradien HIJAU (rumpun Emerald, terang →
+ * medium, tidak gelap) sesuai warna primer tema, disusun seperti kartu resmi
+ * (kop berlogo, nomor sebagai tokoh utama, identitas & status di kaki).
  *
  * Lingkaran aksen memakai Slate — bukan warna gradien itu sendiri — supaya
  * ada kedalaman tanpa menambah hue baru di luar 3 warna yang dipakai.
  */
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MasterPalette as P } from '@workspace/mobile-ui';
+import { MasterPalette as P } from '@/components';
 import { formatRupiah, labelStatusPelanggan } from '@workspace/mobile-core';
 
 import type { LanggananWargaModel } from './repository';
 
-// Gradien hero — 3 warna paten persis: Emerald 500 (kiri-atas) → Sky 400 → Slate 400 (kanan-bawah).
-const HERO = [P.emerald, P.sky, P.slate] as const;
+// Gradien hijau (rumpun Emerald): terang (kiri-atas) → medium (kanan-bawah),
+// sengaja TIDAK gelap. Sesuai warna primer tema.
+const HERO = [P.emerald400, P.emerald, P.emerald600] as const;
 
 function nomorTerformat(nomor: string): string {
   if (nomor.length !== 11) return nomor;
@@ -32,26 +32,16 @@ export function KartuLangganan({ langganan: l, onPress }: { langganan: Langganan
         {/* Aksen lingkaran — Slate, kanan-atas. */}
         <View style={styles.aksen} />
 
-        {/* Kop: brand + Utama */}
-        <View style={styles.kop}>
-          <View style={styles.brandBadge}>
-            <Ionicons name="water" size={16} color="#FFFFFF" />
-          </View>
-          <View style={styles.kopTeks}>
-            <Text style={styles.kopKecil}>PERUMDA TIRTAWENING</Text>
-            <Text style={styles.kopJudul}>Kartu Langganan</Text>
-          </View>
+        {/* Nomor langganan — tokoh utama (kop brand dihapus; sudah diwakili
+            oleh hero beranda). */}
+        <View style={styles.nomorRow}>
+          <Text style={styles.nomorLabel}>NOMOR LANGGANAN</Text>
           {l.isUtama ? (
             <View style={styles.chip}>
               <Text style={styles.chipTeks}>Utama</Text>
             </View>
           ) : null}
         </View>
-
-        <View style={styles.hairline} />
-
-        {/* Nomor langganan — tokoh utama */}
-        <Text style={styles.nomorLabel}>NOMOR LANGGANAN</Text>
         <Text style={styles.nomor} numberOfLines={1}>{nomorTerformat(l.nomorLangganan)}</Text>
 
         {/* Identitas */}
@@ -83,20 +73,15 @@ export function KartuLangganan({ langganan: l, onPress }: { langganan: Langganan
 }
 
 const styles = StyleSheet.create({
-  kartu: { borderRadius: 28, padding: 18, overflow: 'hidden' },
+  kartu: { borderRadius: 22, padding: 16, overflow: 'hidden' },
   aksen: { position: 'absolute', top: -60, right: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: `${P.slate}66` },
-  kop: { flexDirection: 'row', alignItems: 'center' },
-  brandBadge: { width: 30, height: 30, borderRadius: 9, backgroundColor: '#FFFFFF1F', alignItems: 'center', justifyContent: 'center' },
-  kopTeks: { flex: 1, marginLeft: 10 },
-  kopKecil: { fontSize: 9.5, fontWeight: '600', color: '#FFFFFF8C', letterSpacing: 1.3 },
-  kopJudul: { fontSize: 13, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.2, marginTop: 1 },
-  hairline: { height: StyleSheet.hairlineWidth, backgroundColor: '#FFFFFF2E', marginVertical: 14 },
+  nomorRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   nomorLabel: { fontSize: 9, fontWeight: '600', color: '#E0F2FE8C', letterSpacing: 1.4 },
-  nomor: { fontSize: 20, letterSpacing: 2.6, fontWeight: '700', color: '#FFFFFF', marginTop: 4 },
-  nama: { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginTop: 12 },
+  nomor: { fontSize: 19, letterSpacing: 2.4, fontWeight: '700', color: '#FFFFFF', marginTop: 3 },
+  nama: { fontSize: 14.5, fontWeight: '700', color: '#FFFFFF', marginTop: 10 },
   alamat: { fontSize: 11.5, color: '#E0F2FE99', marginTop: 2 },
-  kakiChips: { flexDirection: 'row', gap: 6, marginTop: 14 },
-  kakiTunggakan: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 10 },
+  kakiChips: { flexDirection: 'row', gap: 6, marginTop: 12 },
+  kakiTunggakan: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 8 },
   chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: '#FFFFFF1F', borderWidth: StyleSheet.hairlineWidth, borderColor: '#FFFFFF24' },
   chipAktif: { backgroundColor: '#10B98129' },
   chipNonaktif: { backgroundColor: '#F43F5E29' },

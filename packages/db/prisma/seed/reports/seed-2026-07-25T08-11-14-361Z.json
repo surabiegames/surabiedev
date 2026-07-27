@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-07-25T08:11:14.361Z",
+  "finishedAt": "2026-07-25T08:14:15.410Z",
+  "counts": {
+    "06-meter-pembacaan-tagihan:meter": {
+      "created": 3,
+      "updated": 22520,
+      "unchanged": 0,
+      "skipped": 0
+    },
+    "06-meter-pembacaan-tagihan:pembacaan": {
+      "created": 3,
+      "updated": 22520,
+      "unchanged": 0,
+      "skipped": 0
+    },
+    "06-meter-pembacaan-tagihan:tagihan": {
+      "created": 3,
+      "updated": 22520,
+      "unchanged": 0,
+      "skipped": 0
+    }
+  },
+  "statusChanges": [],
+  "pemutusanNeedsReview": [],
+  "issues": []
+}
